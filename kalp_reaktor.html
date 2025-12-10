@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilara'nın Holografik Kalp Reaktörü 💖</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469244/hands.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675469244/camera_utils.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils@0.3.1675469244/drawing_utils.js"></script>
+
+    <style>
+        /* --- DESIGN SYSTEM SCI-FI / CŒUR ORGANIQUE --- */
+        :root {
+            /* Couleurs héritées du style "Vieux Romantisme Moderne" mais en mode Dark/Glow */
+            --primary-love: #FF005C; /* Rose Vif pour la lueur */
+            --secondary-love: #E0C49F; /* Or/Champagne pour les accents */
+            --background-deep: #050109; 
+            --font-tech: 'Roboto Mono', 'Segoe UI', monospace;
+            --glass-bg: rgba(255, 51, 136, 0.05);
+            --border-glow: #ff99cc;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--background-deep);
+            color: var(--primary-love);
+            font-family: var(--font-tech);
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-image: radial-gradient(circle at center, rgba(255, 51, 136, 0.15) 0%, var(--background-deep) 70%);
+        }
+
+        #container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        video { display: none; }
+
+        /* --- EFFET SCANLINE (CRT) --- */
+        .scanline-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; 
+            background: repeating-linear-gradient(#000000 0, #000000 1px, rgba(255, 255, 255, 0.03) 1px, rgba(255, 255, 255, 0.03) 2px);
+            mix-blend-mode: overlay;
+            opacity: 0.5;
+            z-index: 1000;
+        }
+
+        /* --- UI PANELS (GLASSMORPHIEM) --- */
+        .ui-panel {
+            position: absolute;
+            z-index: 50;
+            padding: 20px;
+            background: var(--glass-bg);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--secondary-love);
+            border-radius: 8px;
+            box-shadow: 0 0 15px var(--border-glow);
+            text-align: center;
+        }
+
+        .decorative-corners::before, .decorative-corners::after {
+            content: '';
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border: 2px solid var(--secondary-love);
+        }
+
+        .decorative-corners::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .decorative-corners::after { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        #control-panel { top: 50px; left: 50px; width: 200px; color: var(--secondary-love); }
+
+        .sci-fi-btn {
+            background-color: var(--primary-love);
+            color: var(--background-deep);
+            border: none;
+            padding: 10px 15px;
+            margin: 5px 0;
+            width: 100%;
+            font-family: var(--font-tech);
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 8px var(--primary-love);
+        }
+        
+        /* --- STATUS BARRE (Bas Centre) --- */
+        #status-bar {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 30px;
+            font-size: 0.9rem;
+            color: var(--secondary-love);
+            min-width: 300px;
+        }
+        
+        /* --- PIP VIEW (Bas Droite) --- */
+        #pip-container {
+            bottom: 50px;
+            right: 50px;
+            width: 150px;
+            height: 100px;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        #pip-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        #error-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            padding: 40px;
+            background: rgba(255, 0, 92, 0.95);
+            color: white;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            box-shadow: 0 0 30px rgba(255, 0, 92, 0.8);
+            z-index: 2000;
+            display: none;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            #control-panel { top: 10px; left: 10px; width: 120px; padding: 10px;}
+            #pip-container { bottom: 10px; right: 10px; width: 80px; height: 50px;}
+            #status-bar { bottom: 5px; font-size: 0.7rem; min-width: unset; width: 80%; }
+            .decorative-corners { display: none; } 
+        }
+    </style>
+</head>
+<body>
+
+    <div id="container"></div>
+
+    <div class="scanline-overlay"></div>
+
+    <div id="error-message">
+        <p id="error-text">Une erreur critique est survenue. Vérification...</p>
+        <button onclick="window.location.reload();" style="background: white; color: var(--primary-love); border: none; padding: 10px 20px; margin-top: 10px; border-radius: 5px; cursor: pointer;">Actualiser la page</button>
+    </div>
+
+
+    <div id="control-panel" class="ui-panel decorative-corners">
+        <h3 style="color: var(--secondary-love); margin-top: 0; font-size: 1.1rem;">KALP AYARLARI</h3>
+        <button class="sci-fi-btn" onclick="setShapeTarget('Heart')">💖 Kalp Reaktörü</button>
+        <button class="sci-fi-btn" onclick="setShapeTarget('Sphere')">⚪ Enerji Küresi</button>
+        <div style="margin-top: 20px;">
+            <label for="colorPicker" style="font-size: 0.9rem;">Renk Tonu:</label><br>
+            <input type="color" id="colorPicker" value="#FF005C" style="width: 100%;">
+        </div>
+    </div>
+
+    <div id="status-bar" class="ui-panel decorative-corners">
+        <span id="status-text" style="color: var(--secondary-love);">SİSTEM BAŞLATILIYOR...</span>
+        <span style="float: right; margin-left: 20px;">| El Tespiti: <span id="hand-status">DEVRE DIŞI</span></span>
+    </div>
+
+    <div id="pip-container" class="ui-panel decorative-corners">
+        <canvas id="pip-canvas"></canvas>
+    </div>
+
+    <video id="webcam-video"></video>
+
+
+    <script>
+        // --- THREE.JS VARIABLES ---
+        let scene, camera, renderer, particles, particleGeometry;
+        const NUM_PARTICLES = 18000;
+        const targetPositions = {};
+        let targetShape = 'Heart';
+        const particlePositions = new Float32Array(NUM_PARTICLES * 3);
+        const colorPicker = document.getElementById('colorPicker');
+        
+        // --- MEDIAPIPE VARIABLES ---
+        let hands, video, videoCanvas, videoCtx, cameraUtil;
+        let handStatus = document.getElementById('hand-status');
+        let statusText = document.getElementById('status-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        // --- ANIMATION CONTROLS ---
+        let rotationSpeed = 0.005;
+        let baseExpansion = 1.0; 
+        let pulseFactor = 1.0; 
+        const lerpFactor = 0.08; 
+        let heartBeatTime = 0;
+        const heartRate = 60; // Battements par minute (BPM)
+
+        // --- UTILS ---
+        function varToHex(cssVar) {
+            const color = getComputedStyle(document.documentElement).getPropertyValue(cssVar).trim();
+            if (color.startsWith('#')) return color.replace('#', '0x');
+            return 0xffffff; 
+        }
+        
+        function showError(message) {
+            errorText.innerText = message;
+            errorMessage.style.display = 'block';
+            console.error("CRITICAL ERROR:", message);
+        }
+
+        // --- INITIALISATION THREE.JS ---
+        function initThree() {
+            try {
+                const container = document.getElementById('container');
+                scene = new THREE.Scene();
+                scene.fog = new THREE.FogExp2(varToHex('--background-deep'), 0.0008); 
+                camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+                camera.position.z = 120;
+                renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                container.appendChild(renderer.domElement);
+
+                particleGeometry = new THREE.BufferGeometry();
+                for (let i = 0; i < NUM_PARTICLES; i++) {
+                    particlePositions[i * 3] = (Math.random() - 0.5) * 50;
+                    particlePositions[i * 3 + 1] = (Math.random() - 0.5) * 50;
+                    particlePositions[i * 3 + 2] = (Math.random() - 0.5) * 50;
+                }
+                particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+                
+                const textureLoader = new THREE.TextureLoader();
+                const sparkTexture = textureLoader.load('https://threejs.org/examples/textures/sprites/spark.png');
+                
+                const particleMaterial = new THREE.PointsMaterial({
+                    color: varToHex('--primary-love'),
+                    size: 2,
+                    map: sparkTexture,
+                    blending: THREE.AdditiveBlending,
+                    transparent: true,
+                    depthWrite: false 
+                });
+
+                particles = new THREE.Points(particleGeometry, particleMaterial);
+                scene.add(particles);
+
+                generateShapeTargets();
+                setShapeTarget('Heart'); 
+
+                window.addEventListener('resize', onWindowResize, false);
+                colorPicker.addEventListener('input', updateParticleColor);
+                
+                animate();
+                statusText.innerText = "SİSTEM ÇEVRİMİÇİ";
+
+            } catch(e) {
+                showError("3D Başlatılamadı. Cihazınız WebGL'yi desteklemiyor olabilir.");
+            }
+        }
+        
+        // --- LOGIQUE MORPH TARGETS (CRÉATION DES FORMES ORGANIQUES) ---
+        function generateShapeTargets() {
+            // 1. CŒUR ORGANIQUE (Utilisation de la fonction de surface de Barth pour un rendu plus esthétique)
+            const heartPositions = new Float32Array(NUM_PARTICLES * 3);
+            const scale = 2.0; 
+            
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                // Génération de coordonnées sphériques aléatoires
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                
+                let x = scale * Math.sin(phi) * Math.cos(theta);
+                let y = scale * Math.sin(phi) * Math.sin(theta);
+                let z = scale * Math.cos(phi);
+
+                // Appliquer la transformation pour la forme de cœur (approximation)
+                const r = Math.sqrt(x*x + y*y + z*z);
+                const r_prime = r * (0.8 + 0.2 * Math.cos(phi * 2)); // Modification du rayon
+                
+                // Mappage sur une position 3D pour un cœur
+                const R = 30; // Grande taille pour le cœur
+                const u = Math.random() * Math.PI * 2;
+                const v = Math.random() * Math.PI * 2;
+                
+                const heartX = R * 16 * Math.sin(u)**3;
+                const heartY = R * (13 * Math.cos(u) - 5 * Math.cos(2 * u) - 2 * Math.cos(3 * u) - Math.cos(4 * u));
+                const heartZ = R * Math.sin(v) * Math.cos(v); 
+                
+                heartPositions[i * 3] = heartX * 0.05;
+                heartPositions[i * 3 + 1] = heartY * 0.05 + 15; // Remonter le cœur
+                heartPositions[i * 3 + 2] = heartZ * 0.05;
+            }
+            targetPositions['Heart'] = heartPositions;
+            
+            // 2. SPHERE (Balle d'énergie pour la transition)
+            const spherePositions = new Float32Array(NUM_PARTICLES * 3);
+            const radius = 30;
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.acos((Math.random() * 2) - 1);
+                spherePositions[i * 3] = radius * Math.sin(phi) * Math.cos(theta) * 0.5;
+                spherePositions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta) * 0.5;
+                spherePositions[i * 3 + 2] = radius * Math.cos(phi) * 0.5;
+            }
+            targetPositions['Sphere'] = spherePositions;
+        }
+        
+        // --- LOGIQUE D'ANIMATION (PULSATION ET MORPHING) ---
+        function setShapeTarget(shapeName) {
+            if (targetPositions[shapeName]) {
+                targetShape = shapeName;
+            }
+        }
+        
+        function updateParticleColor() {
+            const hex = colorPicker.value;
+            particles.material.color.set(hex);
+            document.documentElement.style.setProperty('--primary-love', hex);
+            document.documentElement.style.setProperty('--border-glow', hex + '99'); 
+            
+            // Ajustement du brouillard de fond
+            const r = parseInt(hex.substring(1, 3), 16) / 255;
+            const g = parseInt(hex.substring(3, 5), 16) / 255;
+            const b = parseInt(hex.substring(5, 7), 16) / 255;
+            scene.fog.color.setRGB(r * 0.05, g * 0.05, b * 0.05);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            particles.rotation.x += rotationSpeed * 0.5;
+            particles.rotation.y += rotationSpeed;
+            
+            // 1. Pulsation Rythmique (Automatique)
+            heartBeatTime += 0.016; // Temps en secondes (environ 60 FPS)
+            const frequency = heartRate / 60; // Fréquence en Hz
+            // Formule de pulsation : légère augmentation et diminution sinusoïdale
+            pulseFactor = 1.0 + 0.05 * Math.sin(heartBeatTime * Math.PI * 2 * frequency);
+            
+            // 2. Expansion Totale (Basée sur la main)
+            const currentExpansion = baseExpansion * pulseFactor;
+
+            // 3. Morphing et mise à jour des positions
+            const currentPositions = particleGeometry.attributes.position.array;
+            const target = targetPositions[targetShape];
+
+            for (let i = 0; i < NUM_PARTICLES; i++) {
+                const i3 = i * 3;
+                // Lerp vers la cible, multipliée par l'expansion et la pulsation
+                currentPositions[i3] = THREE.MathUtils.lerp(currentPositions[i3], target[i3] * currentExpansion, lerpFactor);
+                currentPositions[i3 + 1] = THREE.MathUtils.lerp(currentPositions[i3 + 1], target[i3 + 1] * currentExpansion, lerpFactor);
+                currentPositions[i3 + 2] = THREE.MathUtils.lerp(currentPositions[i3 + 2], target[i3 + 2] * currentExpansion, lerpFactor);
+            }
+            particleGeometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+        
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- MEDIAPIPE LOGIC (Interactivité des mains) ---
+        
+        function initMediaPipe() {
+            if (window.location.protocol !== 'https:') {
+                showError("SÉCURITÉ BLOQUÉE : L'accès à la caméra nécessite HTTPS. Veuillez ouvrir cette page via un lien sécurisé (GitHub Pages, etc.).");
+                return;
+            }
+            
+            video = document.getElementById('webcam-video');
+            videoCanvas = document.getElementById('pip-canvas');
+            videoCtx = videoCanvas.getContext('2d');
+            
+            hands = new Hands({locateFile: (file) => {
+                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469244/${file}`;
+            }});
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+            hands.onResults(onResults);
+            
+            try {
+                cameraUtil = new Camera(video, {
+                    onFrame: async () => {
+                        await hands.send({image: video});
+                    },
+                    width: 640,
+                    height: 480
+                });
+                cameraUtil.start().then(() => {
+                    statusText.innerText = "SİSTEM ÇEVRİMİÇİ | Kamera OK";
+                }).catch(e => {
+                     showError("CAMÉRA ERREUR: Accès refusé. Veuillez autoriser la caméra dans les réglages du navigateur.");
+                });
+            } catch(e) {
+                 showError("CAMÉRA ERREUR: Le périphérique est introuvable ou déjà en cours d'utilisation.");
+            }
+        }
+
+        let initialHandDistance = 0;
+        let isAcquired = false;
+
+        function onResults(results) {
+            videoCtx.save();
+            videoCtx.clearRect(0, 0, videoCanvas.width, videoCanvas.height);
+            videoCtx.drawImage(results.image, 0, 0, videoCanvas.width, videoCanvas.height);
+            videoCanvas.width = videoCanvas.offsetWidth;
+            videoCanvas.height = videoCanvas.offsetHeight;
+            
+            let handStatusText = "PASİF";
+            
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length >= 2) {
+                handStatusText = "AKTİF (2 El)";
+                
+                // Utilisation des points centraux (Wrist) pour la distance
+                const hand1 = results.multiHandLandmarks[0][0]; 
+                const hand2 = results.multiHandLandmarks[1][0]; 
+                
+                const dist = Math.sqrt(
+                    (hand1.x - hand2.x) ** 2 + 
+                    (hand1.y - hand2.y) ** 2 + 
+                    (hand1.z - hand2.z) ** 2
+                );
+
+                if (!isAcquired) {
+                    // Calibrage initial
+                    initialHandDistance = dist;
+                    isAcquired = true;
+                    statusText.innerText = "HEDEF KİLİTLENDİ - Boyut Ayarlanıyor";
+                } else {
+                    const scaleFactor = dist / initialHandDistance;
+                    // L'expansion base_expansion est ajustée par la main (entre 0.8 et 2.0)
+                    baseExpansion = THREE.MathUtils.clamp(scaleFactor, 0.8, 2.0); 
+                    
+                    statusText.innerText = `HEDEF KİLİTLENDİ - Boyut: ${baseExpansion.toFixed(2)}x`;
+                    statusText.style.color = baseExpansion > 1.1 ? '#00FF00' : '#00e5ff'; 
+                }
+
+                drawConnectors(videoCtx, results.multiHandLandmarks[0], HAND_CONNECTIONS, {color: 'red', lineWidth: 2});
+                drawLandmarks(videoCtx, results.multiHandLandmarks[0], {color: 'white', lineWidth: 1, radius: 2});
+                drawConnectors(videoCtx, results.multiHandLandmarks[1], HAND_CONNECTIONS, {color: 'red', lineWidth: 2});
+                drawLandmarks(videoCtx, results.multiHandLandmarks[1], {color: 'white', lineWidth: 1, radius: 2});
+
+            } else {
+                handStatusText = "PASİF";
+                isAcquired = false;
+                // Retour lent à la taille normale (baseExpansion = 1.0)
+                baseExpansion = THREE.MathUtils.lerp(baseExpansion, 1.0, 0.05); 
+                if (!statusText.innerText.includes("Kamera")) {
+                     statusText.innerText = "SİSTEM ÇEVRİMİÇİ";
+                }
+            }
+            
+            handStatus.innerText = handStatusText;
+            videoCtx.restore();
+        }
+
+
+        // --- DÉMARRAGE ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initThree();
+            updateParticleColor(); 
+            initMediaPipe();
+        });
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Dilara Photo Hologram</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+    <style>
+        body { margin: 0; background-color: #000; overflow: hidden; font-family: monospace; }
+        #container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        
+        /* UI */
+        .ui-layer { position: absolute; z-index: 10; pointer-events: none; width: 100%; text-align: center; }
+        #header { top: 20px; color: #fff; text-shadow: 0 0 10px #fff; }
+        #status { bottom: 20px; color: #888; font-size: 0.8rem; }
+        
+        /* Start Button */
+        #start-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #000; z-index: 100; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; color: white;
+        }
+        button {
+            padding: 15px 30px; background: transparent; border: 1px solid white; 
+            color: white; font-size: 1.2rem; cursor: pointer; margin-top: 20px;
+        }
+
+        video { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="start-screen">
+        <h1>HOLOGRAMME PHOTO</h1>
+        <p>Görüntüyü 3D parçacıklara dönüştür</p>
+        <button onclick="startApp()">BAŞLAT</button>
+    </div>
+
+    <div id="container"></div>
+
+    <div id="header" class="ui-layer">
+        <h2>SONSUZ ANI</h2>
+    </div>
+    <div id="status" class="ui-layer">Ellerini yaklaştır...</div>
+
+    <video id="webcam-video" playsinline muted autoplay></video>
+
+    <script>
+        // --- CONFIGURATION ---
+        const imageURL = 'photo.jpg'; 
+        
+        const CONFIG = {
+            particleSize: 1.5, // Taille des points
+            depthStrength: 40.0, // Force du relief 3D
+        };
+
+        let scene, camera, renderer, particles, geometry;
+        let originalPositions = []; 
+        let randomPositions = [];   
+        let colors = [];
+        
+        let interactionFactor = 0; 
+        let targetFactor = 0;
+
+        function initThree(imageData) {
+            const container = document.getElementById('container');
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.002);
+
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 2000);
+            camera.position.z = 120; // Recul caméra
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            container.appendChild(renderer.domElement);
+
+            // --- CRÉATION DES PARTICULES ---
+            const width = imageData.width;
+            const height = imageData.height;
+            const data = imageData.data;
+            const count = width * height;
+
+            geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const cols = new Float32Array(count * 3);
+            
+            originalPositions = new Float32Array(count * 3);
+            randomPositions = new Float32Array(count * 3);
+
+            let pIndex = 0;
+            
+            const startX = -width / 2;
+            const startY = height / 2;
+
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const i = (y * width + x) * 4; 
+                    
+                    const r = data[i] / 255;
+                    const g = data[i + 1] / 255;
+                    const b = data[i + 2] / 255;
+                    const a = data[i + 3];
+
+                    // On ignore les pixels transparents ou trop sombres
+                    if (a > 10) {
+                        const brightness = (r + g + b) / 3;
+                        
+                        const posX = (startX + x) * 0.6; // Ecartement X
+                        const posY = (startY - y) * 0.6; // Ecartement Y
+                        // La magie : Z dépend de la luminosité du pixel
+                        const posZ = brightness * CONFIG.depthStrength; 
+
+                        // 1. Position Finale (Photo reconstituée)
+                        originalPositions[pIndex * 3] = posX;
+                        originalPositions[pIndex * 3 + 1] = posY;
+                        originalPositions[pIndex * 3 + 2] = posZ;
+
+                        // 2. Position Explosion (Aléatoire)
+                        randomPositions[pIndex * 3] = (Math.random() - 0.5) * 800;
+                        randomPositions[pIndex * 3 + 1] = (Math.random() - 0.5) * 800;
+                        randomPositions[pIndex * 3 + 2] = (Math.random() - 0.5) * 800;
+
+                        // Init
+                        positions[pIndex * 3] = posX;
+                        positions[pIndex * 3 + 1] = posY;
+                        positions[pIndex * 3 + 2] = posZ;
+
+                        // Couleurs
+                        cols[pIndex * 3] = r;
+                        cols[pIndex * 3 + 1] = g;
+                        cols[pIndex * 3 + 2] = b;
+
+                        pIndex++;
+                    }
+                }
+            }
+
+            // Nettoyage des tableaux
+            const finalPos = positions.slice(0, pIndex * 3);
+            const finalCols = cols.slice(0, pIndex * 3);
+            
+            geometry.setAttribute('position', new THREE.BufferAttribute(finalPos, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(finalCols, 3));
+
+            // Texture simple ronde
+            const sprite = new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png');
+
+            const material = new THREE.PointsMaterial({
+                size: CONFIG.particleSize,
+                vertexColors: true,
+                map: sprite,
+                alphaTest: 0.5,
+                transparent: true,
+                opacity: 0.9
+            });
+
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            animate();
+        }
+
+        // --- CHARGEMENT ---
+        function loadImageAndProcess() {
+            const img = new Image();
+            img.src = imageURL;
+            
+            img.onload = function () {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                // On redimensionne l'image pour ne pas avoir trop de particules (max 200px large)
+                const maxW = 200;
+                const scale = maxW / img.width; 
+                canvas.width = maxW;
+                canvas.height = img.height * scale;
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                try {
+                    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    initThree(imageData);
+                } catch (e) {
+                    alert("ERREUR SÉCURITÉ : Impossible de lire les pixels de l'image locale. Utilisez un serveur local (Live Server) ou hébergez le site.");
+                    console.error(e);
+                }
+            };
+            
+            img.onerror = function() {
+                alert("Impossible de charger 'photo.jpg'. Vérifiez que le fichier est bien dans le dossier.");
+            };
+        }
+
+        // --- ANIMATION ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (particles) {
+                // Lissage
+                interactionFactor += (targetFactor - interactionFactor) * 0.1;
+
+                const positions = geometry.attributes.position.array;
+                
+                // Rotation douce
+                particles.rotation.y = Math.sin(Date.now() * 0.0005) * 0.3; // Oscillation lente
+
+                for (let i = 0; i < positions.length / 3; i++) {
+                    const ix = i * 3;
+
+                    // Interpolation (Mélange) entre position photo et position explosion
+                    const x = originalPositions[ix] + (randomPositions[ix] - originalPositions[ix]) * interactionFactor;
+                    const y = originalPositions[ix+1] + (randomPositions[ix+1] - originalPositions[ix+1]) * interactionFactor;
+                    const z = originalPositions[ix+2] + (randomPositions[ix+2] - originalPositions[ix+2]) * interactionFactor;
+
+                    positions[ix] = x;
+                    positions[ix+1] = y;
+                    positions[ix+2] = z;
+                }
+                geometry.attributes.position.needsUpdate = true;
+            }
+            
+            renderer.render(scene, camera);
+        }
+
+        // --- VISION ---
+        function initCamera() {
+            const videoElement = document.getElementById('webcam-video');
+            const hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
+            
+            hands.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 0,
+                minDetectionConfidence: 0.5,
+                minTrackingConfidence: 0.5
+            });
+
+            hands.onResults((results) => {
+                if (results.multiHandLandmarks.length > 0) {
+                    if (results.multiHandLandmarks.length === 2) {
+                        // 2 Mains : Calcul distance
+                        const h1 = results.multiHandLandmarks[0][8];
+                        const h2 = results.multiHandLandmarks[1][8];
+                        const dist = Math.sqrt(Math.pow(h1.x - h2.x, 2) + Math.pow(h1.y - h2.y, 2));
+                        
+                        // Mapping distance -> explosion
+                        let val = (dist - 0.2) * 2.5; 
+                        if(val < 0) val = 0;
+                        if(val > 1) val = 1;
+                        
+                        targetFactor = val; // Plus les mains sont loin, plus ça explose
+                        document.getElementById('status').innerText = "Manuel Kontrol";
+                    } else {
+                        // 1 Main
+                        targetFactor = 0.3; // Petite déformation
+                    }
+                } else {
+                    targetFactor = 0; // Retour photo normale
+                    document.getElementById('status').innerText = "Görüntü Sabit";
+                }
+            });
+
+            const cameraUtils = new Camera(videoElement, {
+                onFrame: async () => { await hands.send({image: videoElement}); },
+                width: 320, height: 240, facingMode: 'user'
+            });
+            cameraUtils.start();
+        }
+
+        function startApp() {
+            document.getElementById('start-screen').style.display = 'none';
+            loadImageAndProcess();
+            initCamera();
+        }
+
+        window.addEventListener('resize', () => {
+            if(camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
+    </script>
+</body>
+</html>
