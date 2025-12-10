@@ -42,15 +42,19 @@
 
         /* --- 5. TABS STYLES --- */
         .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px; }
-        .photo-frame { background: white; padding: 5px; border-radius: 2px; transform: rotate(-2deg); transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; }
+        .photo-frame { background: white; padding: 5px 5px 15px 5px; border-radius: 2px; transform: rotate(-2deg); transition: transform 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; }
+        .photo-frame:nth-child(even) { transform: rotate(2deg); }
         .photo-frame:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
-        .photo-img { width: 100%; height: 100px; background-size: cover; background-position: center; background-color: #eee; }
+        .photo-img { width: 100%; height: 100px; background-size: cover; background-position: center; background-color: #333; }
         
+        .video-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 10px; border: 1px solid #444; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
         .track-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
         .track-img { width: 40px; height: 40px; border-radius: 5px; background: #333; margin-right: 10px; background-size: cover; }
         
-        .map-container { height: 200px; background: #111; border-radius: 10px; position: relative; overflow: hidden; background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg'); background-size: cover; filter: grayscale(100%) invert(100%); }
-        .map-pin { position: absolute; font-size: 2rem; color: var(--primary); animation: bounce 1s infinite; text-shadow: 0 5px 10px black; }
+        .map-container { height: 200px; background: #111; border-radius: 10px; position: relative; overflow: hidden; background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg'); background-size: cover; background-position: center; filter: grayscale(100%) invert(100%); }
+        .map-pin { position: absolute; font-size: 2rem; color: var(--primary); animation: bounce 1s infinite; cursor: pointer; text-shadow: 0 5px 10px black; }
         
         .bucket-item { text-align: left; padding: 10px; border: 1px solid #333; margin-bottom: 5px; border-radius: 10px; display: flex; align-items: center; cursor: pointer; }
         .bucket-item.checked { text-decoration: line-through; color: #555; border-color: var(--primary); }
@@ -59,7 +63,8 @@
 
         .envelopes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .envelope { background: #222; padding: 15px; border-radius: 10px; border: 1px dashed #555; cursor: pointer; transition: 0.3s; }
-        
+        .envelope:hover { border-color: var(--gold); background: #2a2a2a; }
+
         .timeline { border-left: 2px solid var(--primary); padding-left: 20px; text-align: left; }
         .tl-item { position: relative; margin-bottom: 25px; }
         .tl-item::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
@@ -70,8 +75,10 @@
         .num-btn:active { background: var(--primary); }
         .code-display { font-size: 2rem; letter-spacing: 5px; min-height: 40px; border-bottom: 1px solid var(--primary); margin-bottom: 10px; font-family: monospace; }
 
-        /* NEW TABS STYLES */
-        .astro-signs { display: flex; justify-content: space-around; font-size: 3rem; margin: 20px 0; color: var(--gold); }
+        .astro-signs { display: flex; justify-content: center; gap: 20px; font-size: 3rem; margin: 20px 0; color: var(--gold); align-items: center; }
+        .astro-col { display: flex; flex-direction: column; align-items: center; }
+        .astro-name { font-size: 0.8rem; margin-top: 5px; color: #aaa; text-transform: uppercase; }
+
         .sos-btn { width: 150px; height: 150px; border-radius: 50%; background: red; border: 5px solid darkred; color: white; font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px red; animation: pulseSOS 2s infinite; }
         @keyframes pulseSOS { 0% {box-shadow: 0 0 0 0 rgba(255,0,0,0.7);} 70% {box-shadow: 0 0 0 20px rgba(255,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(255,0,0,0);} }
         .love-wall { height: 300px; overflow: hidden; position: relative; }
@@ -99,19 +106,18 @@
         <div class="nav-item active" onclick="goSite('home')"><i class="fas fa-heart"></i><span>Aşkım</span></div>
         <div class="nav-item" onclick="goSite('timer')"><i class="fas fa-clock"></i><span>Zaman</span></div>
         <div class="nav-item" onclick="goSite('album')"><i class="fas fa-images"></i><span>Albüm</span></div>
+        <div class="nav-item" onclick="goSite('video')"><i class="fas fa-play-circle"></i><span>Video</span></div>
         <div class="nav-item" onclick="goSite('playlist')"><i class="fas fa-music"></i><span>Müzik</span></div>
         <div class="nav-item" onclick="goSite('map')"><i class="fas fa-map-marker-alt"></i><span>Yerimiz</span></div>
         <div class="nav-item" onclick="goSite('bucket')"><i class="fas fa-list-ul"></i><span>Hedefler</span></div>
         <div class="nav-item" onclick="goSite('letters')"><i class="fas fa-envelope-open"></i><span>Mektup</span></div>
         <div class="nav-item" onclick="goSite('dategen')"><i class="fas fa-dice"></i><span>Date</span></div>
         <div class="nav-item" onclick="goSite('timeline')"><i class="fas fa-history"></i><span>Anılar</span></div>
-        
         <div class="nav-item" onclick="goSite('affirmation')"><i class="fas fa-quote-left"></i><span>Günlük</span></div>
         <div class="nav-item" onclick="goSite('astro')"><i class="fas fa-star"></i><span>Burç</span></div>
         <div class="nav-item" onclick="goSite('emergency')"><i class="fas fa-exclamation-triangle"></i><span>Acil</span></div>
-        <div class="nav-item" onclick="goSite('countdown')"><i class="fas fa-hourglass-start"></i><span>Geri Sayım</span></div>
+        <div class="nav-item" onclick="goSite('countdown')"><i class="fas fa-hourglass-start"></i><span>Düğün</span></div>
         <div class="nav-item" onclick="goSite('wall')"><i class="fas fa-comments"></i><span>Duvar</span></div>
-
         <div class="nav-item" onclick="goSite('weather')"><i class="fas fa-cloud-sun"></i><span>Hava</span></div>
         <div class="nav-item" onclick="goSite('quiz')"><i class="fas fa-question-circle"></i><span>Quiz</span></div>
         <div class="nav-item" onclick="goSite('pet')"><i class="fas fa-cat"></i><span>Pet</span></div>
@@ -146,11 +152,22 @@
             <h2>Albüm</h2>
             <div class="glass-card">
                 <div class="photo-grid">
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1621621667797-e06afc217fb0?w=300')"></div></div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=300')"></div></div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1518105570919-e342af1a2956?w=300')"></div></div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=300')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p1.jpg')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p2.jpg')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p3.jpg')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p4.jpg')"></div></div>
                 </div>
+                <p style="font-size:0.8rem; color:#aaa; margin-top:10px;">En güzel anılarımız...</p>
+            </div>
+        </section>
+
+        <section id="video" class="section">
+            <h2>Bizim Hikayemiz</h2>
+            <div class="glass-card">
+                <div class="video-container">
+                    <iframe src="https://www.youtube.com/embed/NHTrguAP2Vs" frameborder="0" allowfullscreen></iframe>
+                </div>
+                <p style="margin-top:10px;">"Kelimelerin bittiği yerde..."</p>
             </div>
         </section>
 
@@ -159,12 +176,12 @@
             <div class="glass-card" style="text-align:left;">
                 <div class="track-row">
                     <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273573c72703272930260336203')"></div>
-                    <div><div style="font-weight:bold;">Sadece</div><div style="font-size:0.8rem; color:#aaa;">Kalben</div></div>
+                    <div><div style="font-weight:bold;">Sadece Dilara</div><div style="font-size:0.8rem; color:#aaa;">Mustafa</div></div>
                     <i class="fas fa-heart" style="margin-left:auto; color:var(--primary);"></i>
                 </div>
                 <div class="track-row">
                     <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273c5598ba82b64df42d22b2729')"></div>
-                    <div><div style="font-weight:bold;">Aşkın Kederi</div><div style="font-size:0.8rem; color:#aaa;">Pinhani</div></div>
+                    <div><div style="font-weight:bold;">Sonsuz Aşk</div><div style="font-size:0.8rem; color:#aaa;">Bizimki</div></div>
                     <i class="fas fa-heart" style="margin-left:auto; color:var(--primary);"></i>
                 </div>
             </div>
@@ -179,6 +196,7 @@
                 <div style="margin-top:15px; font-size:0.9rem;">
                     <p style="font-weight:bold; color:var(--gold);">Parking Bérard</p>
                     <p style="font-size:0.7rem;">Place Victor Bérard, 01200 Valserhône</p>
+                    <p style="font-size:0.6rem; color:#888;">46.108588, 5.829456</p>
                 </div>
             </div>
         </section>
@@ -257,10 +275,15 @@
             <h2>Yıldızlar</h2>
             <div class="glass-card">
                 <div class="astro-signs">
-                    <i class="fas fa-star"></i> <i class="fas fa-heart" style="font-size:1.5rem; margin-top:10px;"></i> <i class="fas fa-moon"></i>
+                    <div class="astro-col"><span style="font-size:3rem;">♓</span><span class="astro-name">Balık</span></div>
+                    <i class="fas fa-heart" style="font-size:1.5rem; color:var(--primary);"></i>
+                    <div class="astro-col"><span style="font-size:3rem;">♋</span><span class="astro-name">Yengeç</span></div>
                 </div>
-                <h3>Mustafa & Dilara</h3>
-                <p style="font-size:0.9rem; color:#ccc;">"Yıldızlar diyor ki: Siz birbiriniz için yaratılmışsınız. Sonsuz bir uyum ve tutku sizi bekliyor." ✨</p>
+                <h3 style="margin:15px 0;">Mustafa & Dilara</h3>
+                <p style="font-size:0.9rem; color:#ddd; font-style:italic; line-height:1.6;">
+                    "Su grubunun mucizevi uyumu! 🌊<br>
+                    Balık'ın derinliği ve Yengeç'in şefkati birleşince kopmaz bir bağ oluşur. Siz birbirinizin evi, sığınağı ve ruh eşisiniz." ✨
+                </p>
             </div>
         </section>
 
@@ -276,9 +299,9 @@
         <section id="countdown" class="section">
             <h2>Büyük Gün</h2>
             <div class="glass-card">
-                <p style="color:var(--gold);">Düğüne Kalan Süre (Tahmini)</p>
-                <div id="wedding-timer" style="font-size:1.5rem; font-weight:bold; margin:20px 0;">Hesaplanıyor...</div>
-                <p style="font-size:0.7rem;">04.04.2026</p>
+                <p style="color:var(--gold);">Evleniyoruz! (04.04.2026)</p>
+                <div id="wedding-timer" style="font-size:2rem; font-weight:bold; margin:20px 0;">Hesaplanıyor...</div>
+                <p style="font-size:0.7rem;">Heyecanla bekliyorum...</p>
             </div>
         </section>
 
@@ -342,46 +365,40 @@
     <video id="webcam-video" playsinline muted></video>
 
     <script>
-        /* === JS NEW TABS === */
-        // Affirmation
+        // --- JS NEW TABS ---
         const affs = ["Sen bir harikasın!", "Bugün çok güzelsin.", "Seni her şeyden çok seviyorum.", "Gülüşün güneşim.", "Sen benim her şeyimsin."];
         function newAffirmation() { document.getElementById('aff-text').innerText = affs[Math.floor(Math.random()*affs.length)]; }
         
-        // Countdown
         const weddingDate = new Date('2026-04-04T00:00:00').getTime();
         setInterval(() => {
-            const now = new Date().getTime();
-            const dist = weddingDate - now;
-            const d = Math.floor(dist / (1000 * 60 * 60 * 24));
+            const now = new Date().getTime(); const dist = weddingDate - now; const d = Math.floor(dist / (1000 * 60 * 60 * 24));
             document.getElementById('wedding-timer').innerText = d + " Gün Kaldı!";
         }, 1000);
 
-        // Wall of Love
         const wallContainer = document.getElementById('love-container');
         const languages = ["Seni Seviyorum", "I Love You", "Je t'aime", "Ti Amo", "Te Quiero", "Ich Liebe Dich", "Aishiteru", "Saranghae"];
         for(let i=0; i<15; i++) {
-            const span = document.createElement('div');
-            span.className = 'love-text';
+            const span = document.createElement('div'); span.className = 'love-text';
             span.innerText = languages[Math.floor(Math.random()*languages.length)];
             span.style.left = Math.random()*80 + 10 + '%';
-            span.style.animationDuration = (Math.random()*5 + 5) + 's';
-            span.style.animationDelay = Math.random()*5 + 's';
+            span.style.animationDuration = (Math.random()*5 + 5) + 's'; span.style.animationDelay = Math.random()*5 + 's';
             wallContainer.appendChild(span);
         }
 
-        /* === JS PREVIOUS TABS === */
-        const dates=["Sushi Yapımı 🍣", "Korku Filmi 🍿", "Gece Pikniği 🚗", "Lunapark 🎢", "Resim Çizme 🎨", "Sahil 🌊"];
+        // --- JS PREVIOUS TABS (CUSTOMIZED) ---
+        const dates=["Evde Sushi Yapımı 🍣", "Battaniye Altında Korku Filmi 🍿", "Gece Pikniği (Araba Bagajında) 🚗", "Lunapark Eğlencesi 🎢", "Birlikte Resim Çizme 🎨", "Sahilde Yürüyüş 🌊"];
         function genDate() { 
             const r = document.getElementById('date-result'); r.style.opacity = 0;
             setTimeout(() => { r.innerText = dates[Math.floor(Math.random()*dates.length)]; r.style.opacity = 1; }, 200);
         }
-        function checkQuiz(ans) { ans==='Mustafa'?alert("Doğru! 😜"):alert("Yanlış! Bence Mustafa 😂"); }
+        function checkQuiz(ans) { ans==='Mustafa'?alert("Doğru! Tabii ki Mustafa 😜"):alert("Hmm... Emin misin? Bence Mustafa! 😂"); }
+        
         let code=""; function addCode(n){if(code.length<6)code+=n;upCode();} function clearCode(){code="";upCode();} function upCode(){document.getElementById('code-display').innerText=code.split('').map(()=>'*').join('');} 
         function checkCode(){
             switch(code) {
-                case "131124": alert("Aşkımızın Başlangıcı! ❤️"); break;
-                case "170524": alert("Sözlendik! 💍"); break;
-                case "040426": alert("Evleniyoruz! 👰🤵"); break;
+                case "131124": alert("Aşkımızın Başlangıcı! ❤️ (13.11.24)"); break;
+                case "170524": alert("Sözlendik! 💍 Sonsuza dek..."); break;
+                case "040426": alert("Evleniyoruz! 👰🤵 (04.04.26)"); break;
                 case "020799": alert("İyi ki doğdun Dilara! 🎂"); break;
                 case "200396": alert("Doğum Günüm! 🎉"); break;
                 default: alert("Yanlış Şifre!");
@@ -414,7 +431,7 @@
         function switchView(id){ document.querySelectorAll('.view-layer').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
         function updateNavUI(id){ document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active'); if(e.onclick.toString().includes(id)) e.classList.add('active');}); }
 
-        /* === 3D LOGIC === */
+        /* === 3D LOGIC (ULTRA REACTIVE) === */
         const PHOTO_URL = 'photo.jpg'; 
         const PARTICLE_COUNT = 7000;
         const REACTION_SPEED = 0.4; 
@@ -486,8 +503,7 @@
             }
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(col,3));
-            const sprite = new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png');
-            const mat = new THREE.PointsMaterial({size:1.5, map:sprite, vertexColors:true, transparent:true});
+            const mat = new THREE.PointsMaterial({size:1.5, vertexColors:true, transparent:true});
             particles = new THREE.Points(geometry, mat);
             scene.add(particles);
         }
@@ -542,7 +558,7 @@
                         if(val<0.8) val=0.8; if(val>6) val=6;
                         targetExpansion=val;
                     } else {
-                        // Hologram: Distance controls explosion.
+                        // Hologram: Distance controls explosion. Close=0, Far=1
                         if(res.multiHandLandmarks.length===2) {
                             let val = (dist - 0.2) * 3.0; 
                             if(val<0) val=0; if(val>1) val=1;
@@ -557,12 +573,6 @@
             });
             cameraUtils = new Camera(vid, {onFrame: async()=>{await hands.send({image:vid})}, width:320, height:240});
             cameraUtils.start();
-        }
-
-        const msgs = ["Senin gülüşün...", "Her anım seninle...", "Seni çok seviyorum", "İyi ki varsın"];
-        function openMsg() {
-            const el = document.getElementById('msg-text'); el.style.opacity = 0;
-            setTimeout(()=>{el.innerText = msgs[Math.floor(Math.random()*msgs.length)]; el.style.opacity=1},300);
         }
 
         window.addEventListener('resize', ()=>{ if(camera){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);} });
