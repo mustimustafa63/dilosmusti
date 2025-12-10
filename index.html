@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sadece Dilara'ya | Ultimate V3 ❤️</title>
+    <title>Sadece Dilara'ya | Ultimate V4 Glow ❤️</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -180,18 +180,16 @@
         let animationId, cameraUtils, hands;
         let is3DInitialized = false;
         
-        // Data
         let targetPositions = [], originalPositions = [], randomPositions = [];
         
-        // State Physics
         let expansionFactor = 1.0;
         let targetExpansion = 1.0;
         let pulseTime = 0;
 
-        // CONFIG OPTIMISÉE POUR LA PERFORMANCE ET LA QUALITÉ
-        const PHOTO_URL = 'photo.jpg'; // Obligatoire
+        // CONFIG
+        const PHOTO_URL = 'photo.jpg';
         const PARTICLE_COUNT_REACTOR = 7000;
-        const REACTION_SPEED = 0.3; // 0.1 était trop lent, 0.3 est vif.
+        const REACTION_SPEED = 0.3;
 
         // === 1. NAVIGATION ===
         function goSite(sectionId) {
@@ -275,12 +273,10 @@
             targetPositions = [];
 
             const c1 = new THREE.Color(0xff0040);
-            const c2 = new THREE.Color(0xffaa00);
 
             for(let i=0; i<PARTICLE_COUNT_REACTOR; i++) {
-                // Formule Cœur
                 const t = Math.random() * Math.PI * 2;
-                const d = Math.pow(Math.random(), 0.5); // Densité centre
+                const d = Math.pow(Math.random(), 0.5);
                 
                 let x = 16 * Math.pow(Math.sin(t), 3);
                 let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
@@ -291,20 +287,20 @@
                 targetPositions[ix+1] = y * 1.5 * d;
                 targetPositions[ix+2] = z * 1.5 * d;
 
-                // Position Départ
                 positions[ix] = (Math.random()-0.5)*500;
                 positions[ix+1] = (Math.random()-0.5)*500;
                 positions[ix+2] = (Math.random()-0.5)*500;
 
-                // Couleurs
                 colors[ix] = c1.r; colors[ix+1] = c1.g; colors[ix+2] = c1.b;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
+            // Texture rouge pour le coeur
+            const sprite = createTexture('#ff0040');
             const material = new THREE.PointsMaterial({
-                size: 2.0, vertexColors: true, blending: THREE.AdditiveBlending, 
+                size: 2.5, map: sprite, vertexColors: true, blending: THREE.AdditiveBlending, 
                 depthWrite: false, transparent: true, opacity: 0.9
             });
 
@@ -319,7 +315,6 @@
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                // Augmentation Résolution pour Netteté
                 const maxW = 280; 
                 const scale = maxW / img.width;
                 canvas.width = maxW; canvas.height = img.height * scale;
@@ -352,12 +347,11 @@
             for(let y=0; y<h; y++) {
                 for(let x=0; x<w; x++) {
                     const i = (y*w + x) * 4;
-                    // Ignore les pixels trop transparents
                     if(data[i+3] > 100) { 
                         const r = data[i]/255; const g = data[i+1]/255; const b = data[i+2]/255;
                         
-                        // Z Depth plat pour éviter déformation visage
-                        const pz = (r+g+b)/3 * 15; 
+                        // Z Depth réduit pour garder la photo compacte
+                        const pz = (r+g+b)/3 * 10; 
                         
                         const px = (startX + x) * 0.7;
                         const py = (startY - y) * 0.7;
@@ -366,12 +360,10 @@
                         originalPositions[idx*3+1] = py;
                         originalPositions[idx*3+2] = pz;
 
-                        // Explosion
                         randomPositions[idx*3] = (Math.random()-0.5)*1000;
                         randomPositions[idx*3+1] = (Math.random()-0.5)*1000;
                         randomPositions[idx*3+2] = (Math.random()-0.5)*1000;
 
-                        // Start at Original
                         positions[idx*3] = px;
                         positions[idx*3+1] = py;
                         positions[idx*3+2] = pz;
@@ -388,8 +380,17 @@
             geometry.setAttribute('position', new THREE.BufferAttribute(finalPos, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(finalCols, 3));
 
+            // Texture blanche pour l'hologramme (pour prendre la couleur du pixel)
+            const sprite = createTexture('#ffffff');
+            // ADDITIVE BLENDING + TAILLE PLUS GRANDE = G L O W
             const material = new THREE.PointsMaterial({
-                size: 1.4, vertexColors: true, sizeAttenuation: true, opacity: 1
+                size: 3.0, // Taille augmentée
+                map: sprite,
+                vertexColors: true, 
+                blending: THREE.AdditiveBlending, // Le secret du glow
+                depthWrite: false,
+                transparent: true,
+                opacity: 1.0
             });
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
@@ -400,22 +401,18 @@
             animationId = requestAnimationFrame(animate);
             if(!particles) return;
 
-            // Rotation douce SEULEMENT pour le Réacteur
             if (currentMode === 'reactor') {
                 particles.rotation.y += 0.003;
             } else {
-                // Pour l'hologramme, on garde la photo stable face caméra
                 particles.rotation.y = 0; 
                 particles.rotation.x = 0;
             }
 
             const positions = geometry.attributes.position.array;
             
-            // Lissage ultra-réactif (0.3 au lieu de 0.1)
             expansionFactor += (targetExpansion - expansionFactor) * REACTION_SPEED;
 
             if (currentMode === 'reactor') {
-                // LOGIQUE COEUR
                 for(let i=0; i<positions.length/3; i++) {
                     const ix = i*3;
                     const tx = targetPositions[ix] * expansionFactor;
@@ -427,8 +424,6 @@
                     positions[ix+2] += (tz - positions[ix+2]) * REACTION_SPEED;
                 }
             } else {
-                // LOGIQUE HOLOGRAMME (Mix Original vs Explosion)
-                // expansionFactor = 0 (Photo) -> 1 (Explosion)
                 const ratio = expansionFactor; 
                 
                 for(let i=0; i<positions.length/3; i++) {
@@ -466,7 +461,6 @@
                 }
 
                 if(results.multiHandLandmarks.length === 2) {
-                    // DEUX MAINS DETECTEES
                     status.innerText = "CONNEXION ÉTABLIE";
                     status.style.color = "#00ffaa";
 
@@ -475,13 +469,11 @@
                     const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
 
                     if(currentMode === 'reactor') {
-                        // Reactor: Close=Small, Far=Big
                         let val = dist * 7.0;
                         if(val < 0.8) val = 0.8; if(val > 5.0) val = 5.0;
                         targetExpansion = val;
                     } else {
-                        // Hologram: Close=Original(0), Far=Explode(1)
-                        // Ajusté pour que la photo reste intacte si les mains sont proches
+                        // Hologramme : Reste intact si proche, explose si loin
                         let val = (dist - 0.2) * 2.5; 
                         if(val < 0) val = 0; if(val > 1) val = 1;
                         targetExpansion = val;
@@ -492,10 +484,10 @@
                     status.style.color = "#888";
                     
                     if(currentMode === 'reactor') {
-                        pulseTime += 0.15; // Battement rapide
+                        pulseTime += 0.15;
                         targetExpansion = 1.0 + Math.sin(pulseTime)*0.2;
                     } else {
-                        targetExpansion = 0; // Photo intacte par défaut
+                        targetExpansion = 0;
                     }
                 }
             });
@@ -507,15 +499,16 @@
             cameraUtils.start();
         }
 
-        // --- UTILS ---
-        function createTexture() {
-            const c = document.createElement('canvas'); c.width=32; c.height=32;
+        // --- UTILS: GLOWING SPRITE CREATOR ---
+        function createTexture(colorHex) {
+            const c = document.createElement('canvas'); c.width=64; c.height=64;
             const cx = c.getContext('2d');
-            const g = cx.createRadialGradient(16,16,0,16,16,16);
-            g.addColorStop(0, 'rgba(255,255,255,1)');
-            g.addColorStop(0.4, 'rgba(255,0,60,1)');
-            g.addColorStop(1, 'rgba(0,0,0,0)');
-            cx.fillStyle = g; cx.fillRect(0,0,32,32);
+            const g = cx.createRadialGradient(32,32,0,32,32,32);
+            // Centre lumineux, bord transparent
+            g.addColorStop(0, colorHex); // Couleur centrale
+            g.addColorStop(0.4, colorHex); 
+            g.addColorStop(1, 'rgba(0,0,0,0)'); // Bord transparent
+            cx.fillStyle = g; cx.fillRect(0,0,64,64);
             const t = new THREE.Texture(c); t.needsUpdate = true;
             return t;
         }
