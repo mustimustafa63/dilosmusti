@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sadece Dilara'ya | Ultimate Fixed V2 ❤️</title>
+    <title>Sadece Dilara'ya | Ultimate App ❤️</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -15,48 +15,82 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     
     <style>
+        /* --- 1. CORE STYLES --- */
         :root { --primary: #ff0a43; --gold: #ffd700; --bg: #050505; --glass: rgba(20, 20, 20, 0.85); }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: 'Montserrat', sans-serif; color: white; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
 
-        .view-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s; opacity: 0; pointer-events: none; z-index: 0; }
-        .view-layer.active { opacity: 1; pointer-events: auto; z-index: 5; }
+        /* --- 2. VIEW MANAGEMENT --- */
+        .view-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 0; pointer-events: none; z-index: 0; transform: scale(0.95); }
+        .view-layer.active { opacity: 1; pointer-events: auto; z-index: 5; transform: scale(1); }
         
         #view-site { background: radial-gradient(circle at center, #1a0000 0%, #000000 90%); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
         #view-3d { background: black; overflow: hidden; }
 
-        /* NAV */
-        #navbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; height: 70px; background: rgba(10, 10, 10, 0.95); border-radius: 25px; display: flex; align-items: center; z-index: 1000; padding: 0 10px; overflow-x: auto; gap: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .nav-item { color: #666; font-size: 1.2rem; display: flex; flex-direction: column; align-items: center; min-width: 60px; transition: 0.3s; }
+        /* --- 3. NAVIGATION (LONG SCROLL) --- */
+        #navbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; height: 75px; background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px; display: flex; align-items: center; z-index: 1000; padding: 0 10px; overflow-x: auto; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        #navbar::-webkit-scrollbar { display: none; }
+        .nav-item { color: #666; font-size: 1.2rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; min-width: 60px; flex-shrink: 0; }
+        .nav-item span { font-size: 0.5rem; margin-top: 4px; font-weight: 700; white-space: nowrap; text-transform: uppercase; }
         .nav-item.active { color: var(--gold); transform: translateY(-2px); }
-        .nav-item span { font-size: 0.55rem; margin-top: 4px; font-weight: 700; text-transform: uppercase; }
+        .nav-item.active i { text-shadow: 0 0 10px var(--gold); }
 
-        /* SECTIONS */
-        .section { height: 100vh; width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px; }
-        .glass-card { background: var(--glass); border: 1px solid rgba(255,215,0,0.1); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; text-align: center; }
+        /* --- 4. SECTIONS --- */
+        .section { height: 100vh; width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 20px 20px 80px 20px; }
+        h2 { font-family: 'Sacramento', cursive; font-size: 2.5rem; color: var(--gold); margin-bottom: 20px; text-align: center; }
+        .glass-card { background: var(--glass); border: 1px solid rgba(255,215,0,0.1); border-radius: 20px; padding: 20px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); overflow-y: auto; max-height: 70vh; }
+
+        /* --- 5. TABS STYLES --- */
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 10px; }
+        .photo-frame { background: white; padding: 5px; border-radius: 2px; transform: rotate(-2deg); transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; }
+        .photo-frame:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
+        .photo-img { width: 100%; height: 100px; background-size: cover; background-position: center; background-color: #eee; }
         
+        .track-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #333; }
+        .track-img { width: 40px; height: 40px; border-radius: 5px; background: #333; margin-right: 10px; background-size: cover; }
+        
+        .map-container { height: 200px; background: #111; border-radius: 10px; position: relative; overflow: hidden; background-image: url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg'); background-size: cover; filter: grayscale(100%) invert(100%); }
+        .map-pin { position: absolute; font-size: 2rem; color: var(--primary); animation: bounce 1s infinite; text-shadow: 0 5px 10px black; }
+        
+        .bucket-item { text-align: left; padding: 10px; border: 1px solid #333; margin-bottom: 5px; border-radius: 10px; display: flex; align-items: center; cursor: pointer; }
+        .bucket-item.checked { text-decoration: line-through; color: #555; border-color: var(--primary); }
+        .bucket-check { width: 20px; height: 20px; border: 1px solid white; border-radius: 50%; margin-right: 10px; }
+        .bucket-item.checked .bucket-check { background: var(--primary); border-color: var(--primary); }
+
+        .envelopes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .envelope { background: #222; padding: 15px; border-radius: 10px; border: 1px dashed #555; cursor: pointer; transition: 0.3s; }
+        
+        .timeline { border-left: 2px solid var(--primary); padding-left: 20px; text-align: left; }
+        .tl-item { position: relative; margin-bottom: 25px; }
+        .tl-item::before { content: ''; position: absolute; left: -26px; top: 5px; width: 10px; height: 10px; background: var(--primary); border-radius: 50%; box-shadow: 0 0 10px var(--primary); }
+        .tl-date { font-size: 0.8rem; color: var(--gold); font-weight: bold; }
+
+        .numpad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px; }
+        .num-btn { padding: 15px; background: #222; border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.1s; }
+        .num-btn:active { background: var(--primary); }
+        .code-display { font-size: 2rem; letter-spacing: 5px; min-height: 40px; border-bottom: 1px solid var(--primary); margin-bottom: 10px; font-family: monospace; }
+
+        /* NEW TABS STYLES */
+        .astro-signs { display: flex; justify-content: space-around; font-size: 3rem; margin: 20px 0; color: var(--gold); }
+        .sos-btn { width: 150px; height: 150px; border-radius: 50%; background: red; border: 5px solid darkred; color: white; font-size: 2rem; font-weight: bold; cursor: pointer; box-shadow: 0 0 30px red; animation: pulseSOS 2s infinite; }
+        @keyframes pulseSOS { 0% {box-shadow: 0 0 0 0 rgba(255,0,0,0.7);} 70% {box-shadow: 0 0 0 20px rgba(255,0,0,0);} 100% {box-shadow: 0 0 0 0 rgba(255,0,0,0);} }
+        .love-wall { height: 300px; overflow: hidden; position: relative; }
+        .love-text { position: absolute; white-space: nowrap; animation: floatText linear infinite; opacity: 0.7; }
+        @keyframes floatText { from { transform: translateY(300px); } to { transform: translateY(-50px); } }
+
         /* 3D UI */
         #ui-3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        #header-3d { position: absolute; top: 30px; width: 100%; text-align: center; }
         #status-3d { position: absolute; bottom: 110px; width: 100%; text-align: center; color: #fff; font-weight: bold; text-shadow: 0 0 5px black; }
-        
-        /* PIP CAM (CORRIGÉ) */
-        #pip-container { 
-            position: absolute; bottom: 100px; right: 20px; width: 100px; height: 133px; 
-            border: 2px solid var(--primary); border-radius: 10px; overflow: hidden; background: #000;
-            z-index: 20; pointer-events: none;
-        }
+        #pip-container { position: absolute; bottom: 100px; right: 20px; width: 100px; height: 133px; border: 2px solid var(--primary); border-radius: 10px; overflow: hidden; background: #000; z-index: 20; pointer-events: none; }
         #pip-canvas { width: 100%; height: 100%; transform: scaleX(-1); object-fit: cover; }
-        
         #btn-start-3d { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; border: none; padding: 15px 40px; font-weight: bold; pointer-events: auto; cursor: pointer; border-radius: 30px; z-index: 200; }
 
         /* EXTRAS */
         .neon-heart { width: 150px; fill: var(--primary); animation: pulse 1s infinite; filter: drop-shadow(0 0 10px var(--primary)); }
         @keyframes pulse { 0%,100% {transform:scale(1)} 50% {transform:scale(1.1)} }
-        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .photo { height: 120px; background-size: cover; border-radius: 10px; }
+        .action-btn { background: linear-gradient(45deg, #ff0055, #ff5500); border: none; color: white; padding: 10px 25px; border-radius: 50px; font-weight: bold; margin-top: 15px; cursor: pointer; }
         
-        video { display: none; }
+        video { position: fixed; top: 0; left: 0; opacity: 0; pointer-events: none; width: 1px; height: 1px; z-index: -1; }
     </style>
 </head>
 <body>
@@ -65,14 +99,32 @@
         <div class="nav-item active" onclick="goSite('home')"><i class="fas fa-heart"></i><span>Aşkım</span></div>
         <div class="nav-item" onclick="goSite('timer')"><i class="fas fa-clock"></i><span>Zaman</span></div>
         <div class="nav-item" onclick="goSite('album')"><i class="fas fa-images"></i><span>Albüm</span></div>
-        <div class="nav-item" onclick="goSite('capsule')"><i class="fas fa-envelope"></i><span>Mesaj</span></div>
+        <div class="nav-item" onclick="goSite('playlist')"><i class="fas fa-music"></i><span>Müzik</span></div>
+        <div class="nav-item" onclick="goSite('map')"><i class="fas fa-map-marker-alt"></i><span>Yerimiz</span></div>
+        <div class="nav-item" onclick="goSite('bucket')"><i class="fas fa-list-ul"></i><span>Hedefler</span></div>
+        <div class="nav-item" onclick="goSite('letters')"><i class="fas fa-envelope-open"></i><span>Mektup</span></div>
+        <div class="nav-item" onclick="goSite('dategen')"><i class="fas fa-dice"></i><span>Date</span></div>
+        <div class="nav-item" onclick="goSite('timeline')"><i class="fas fa-history"></i><span>Anılar</span></div>
+        
+        <div class="nav-item" onclick="goSite('affirmation')"><i class="fas fa-quote-left"></i><span>Günlük</span></div>
+        <div class="nav-item" onclick="goSite('astro')"><i class="fas fa-star"></i><span>Burç</span></div>
+        <div class="nav-item" onclick="goSite('emergency')"><i class="fas fa-exclamation-triangle"></i><span>Acil</span></div>
+        <div class="nav-item" onclick="goSite('countdown')"><i class="fas fa-hourglass-start"></i><span>Geri Sayım</span></div>
+        <div class="nav-item" onclick="goSite('wall')"><i class="fas fa-comments"></i><span>Duvar</span></div>
+
+        <div class="nav-item" onclick="goSite('weather')"><i class="fas fa-cloud-sun"></i><span>Hava</span></div>
+        <div class="nav-item" onclick="goSite('quiz')"><i class="fas fa-question-circle"></i><span>Quiz</span></div>
+        <div class="nav-item" onclick="goSite('pet')"><i class="fas fa-cat"></i><span>Pet</span></div>
+        <div class="nav-item" onclick="goSite('secret')"><i class="fas fa-lock"></i><span>Gizli</span></div>
+        
         <div class="nav-item" onclick="goMode('reactor')" style="color: var(--primary);"><i class="fas fa-atom"></i><span>Reaktör</span></div>
         <div class="nav-item" onclick="goMode('hologram')" style="color: #00e5ff;"><i class="fas fa-cube"></i><span>Hologram</span></div>
     </nav>
 
     <main id="view-site" class="view-layer active">
+        
         <section id="home" class="section">
-            <h1 style="font-family:'Sacramento', cursive; font-size:4.5rem; color:var(--primary);">Dilara</h1>
+            <h1 style="font-family:'Sacramento', cursive; font-size:4rem; color:var(--primary);">Dilara</h1>
             <svg class="neon-heart" viewBox="0 0 512 512"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>
             <p style="margin-top:20px; font-style:italic;">"Benim dünyam sensin."</p>
         </section>
@@ -80,30 +132,199 @@
         <section id="timer" class="section">
             <h2>Zaman</h2>
             <div class="glass-card">
+                <p>13 Kasım 2024...</p>
                 <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
-                    <div><div id="d">0</div><span>GÜN</span></div>
-                    <div><div id="h">0</div><span>SAAT</span></div>
-                    <div><div id="m">0</div><span>DK</span></div>
-                    <div><div id="s">0</div><span>SN</span></div>
+                    <div><div id="d">0</div><span style="font-size:0.6rem">GÜN</span></div>
+                    <div><div id="h">0</div><span style="font-size:0.6rem">SAAT</span></div>
+                    <div><div id="m">0</div><span style="font-size:0.6rem">DK</span></div>
+                    <div><div id="s">0</div><span style="font-size:0.6rem">SN</span></div>
                 </div>
             </div>
         </section>
 
         <section id="album" class="section">
-            <h2>Anılarımız</h2>
+            <h2>Albüm</h2>
             <div class="glass-card">
                 <div class="photo-grid">
-                    <div class="photo" style="background-image: url('https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=300')"></div>
-                    <div class="photo" style="background-image: url('https://images.unsplash.com/photo-1511895426328-dc8714191300?w=300')"></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1621621667797-e06afc217fb0?w=300')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1523438885200-e635ba2c371e?w=300')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1518105570919-e342af1a2956?w=300')"></div></div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=300')"></div></div>
                 </div>
             </div>
         </section>
 
-        <section id="capsule" class="section">
-            <h2>Mesaj</h2>
+        <section id="playlist" class="section">
+            <h2>Müzik</h2>
+            <div class="glass-card" style="text-align:left;">
+                <div class="track-row">
+                    <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273573c72703272930260336203')"></div>
+                    <div><div style="font-weight:bold;">Sadece</div><div style="font-size:0.8rem; color:#aaa;">Kalben</div></div>
+                    <i class="fas fa-heart" style="margin-left:auto; color:var(--primary);"></i>
+                </div>
+                <div class="track-row">
+                    <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273c5598ba82b64df42d22b2729')"></div>
+                    <div><div style="font-weight:bold;">Aşkın Kederi</div><div style="font-size:0.8rem; color:#aaa;">Pinhani</div></div>
+                    <i class="fas fa-heart" style="margin-left:auto; color:var(--primary);"></i>
+                </div>
+            </div>
+        </section>
+
+        <section id="map" class="section">
+            <h2>İlk Buluşma</h2>
             <div class="glass-card">
-                <p id="msg-text" style="font-style:italic; min-height:50px;">"Butona bas..."</p>
-                <button onclick="openMsg()" style="padding:10px 30px; background:white; border:none; border-radius:20px; font-weight:bold;">AÇ</button>
+                <div class="map-container">
+                    <i class="fas fa-map-marker-alt map-pin" style="top:35%; left:48%;" onclick="alert('Valserhône ❤️ Buradaydı...')"></i>
+                </div>
+                <div style="margin-top:15px; font-size:0.9rem;">
+                    <p style="font-weight:bold; color:var(--gold);">Parking Bérard</p>
+                    <p style="font-size:0.7rem;">Place Victor Bérard, 01200 Valserhône</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="bucket" class="section">
+            <h2>Hedefler</h2>
+            <div class="glass-card">
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🌍 Dünya Turu</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 💍 Evlenme (4 Nisan 2026)</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🎈 Kapadokya Balonu</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🌌 Kuzey Işıkları</div>
+            </div>
+        </section>
+
+        <section id="letters" class="section">
+            <h2>Aç Ne Zaman...</h2>
+            <div class="glass-card">
+                <div class="envelopes-grid">
+                    <div class="envelope" onclick="alert('Gözyaşlarına kıyamam. Ben hep yanındayım, her şey geçecek aşkım. ❤️')">
+                        <i class="fas fa-sad-tear" style="font-size:2rem; margin-bottom:5px;"></i><br><span style="font-size:0.8rem">Üzgünsen</span>
+                    </div>
+                    <div class="envelope" onclick="alert('Gözlerini kapat ve elini kalbine koy. Orada atıyorum. Seni çok özledim. 🤗')">
+                        <i class="fas fa-heart-broken" style="font-size:2rem; margin-bottom:5px;"></i><br><span style="font-size:0.8rem">Özlediysen</span>
+                    </div>
+                    <div class="envelope" onclick="alert('O gülüşün benim yaşama sebebim! Hep gül sen. ✨')">
+                        <i class="fas fa-smile-beam" style="font-size:2rem; margin-bottom:5px;"></i><br><span style="font-size:0.8rem">Mutluysan</span>
+                    </div>
+                    <div class="envelope" onclick="alert('Korkma, biz yenilmeziz. Elimi tut, her şeyi başarırız. 💪')">
+                        <i class="fas fa-fist-raised" style="font-size:2rem; margin-bottom:5px;"></i><br><span style="font-size:0.8rem">Korkuyorsan</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dategen" class="section">
+            <h2>Ne Yapsak?</h2>
+            <div class="glass-card">
+                <div id="date-result" style="font-size:1.3rem; font-weight:bold; margin:20px 0; color:var(--gold); min-height:60px; display:flex; align-items:center; justify-content:center;">???</div>
+                <button class="action-btn" onclick="genDate()">Fikir Ver</button>
+            </div>
+        </section>
+
+        <section id="timeline" class="section">
+            <h2>Anı Tüneli</h2>
+            <div class="glass-card">
+                <div class="timeline">
+                    <div class="tl-item">
+                        <div class="tl-date">13 / 11 / 2024</div>
+                        <div style="font-weight:bold; font-size:1.1rem;">Tanışma ❤️</div>
+                        <div style="font-size:0.8rem; color:#ccc;">Hikayemizin başladığı gün.</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date">17 / 05 / 2024</div>
+                        <div style="font-weight:bold; font-size:1.1rem;">Söz / Nişan 💍</div>
+                        <div style="font-size:0.8rem; color:#ccc;">Sonsuzluğa ilk adım.</div>
+                    </div>
+                    <div class="tl-item">
+                        <div class="tl-date" style="color:#00e5ff;">04 / 04 / 2026</div>
+                        <div style="font-weight:bold; font-size:1.1rem;">Evlenme 👰🤵</div>
+                        <div style="font-size:0.8rem; color:#ccc;">Büyük günümüz!</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="affirmation" class="section">
+            <h2>Günlük Not</h2>
+            <div class="glass-card">
+                <i class="fas fa-quote-left" style="color:var(--gold); font-size:2rem; margin-bottom:10px;"></i>
+                <p id="aff-text" style="font-style:italic; font-size:1.1rem;">"Sen benim en güzel şansımsın."</p>
+                <button class="action-btn" onclick="newAffirmation()">Yeni Söz Çek</button>
+            </div>
+        </section>
+
+        <section id="astro" class="section">
+            <h2>Yıldızlar</h2>
+            <div class="glass-card">
+                <div class="astro-signs">
+                    <i class="fas fa-star"></i> <i class="fas fa-heart" style="font-size:1.5rem; margin-top:10px;"></i> <i class="fas fa-moon"></i>
+                </div>
+                <h3>Mustafa & Dilara</h3>
+                <p style="font-size:0.9rem; color:#ccc;">"Yıldızlar diyor ki: Siz birbiriniz için yaratılmışsınız. Sonsuz bir uyum ve tutku sizi bekliyor." ✨</p>
+            </div>
+        </section>
+
+        <section id="emergency" class="section">
+            <h2>Acil Durum</h2>
+            <div class="glass-card">
+                <p style="margin-bottom:20px;">Bana ihtiyacın varsa bas!</p>
+                <button class="sos-btn" onclick="window.location.href='https://wa.me/33600000000?text=Aşkım%20acil%20sana%20ihtiyacım%20var!%20Lütfen%20ara!'">SOS</button>
+                <p style="font-size:0.7rem; color:#666; margin-top:15px;">Direkt WhatsApp'a atar</p>
+            </div>
+        </section>
+
+        <section id="countdown" class="section">
+            <h2>Büyük Gün</h2>
+            <div class="glass-card">
+                <p style="color:var(--gold);">Düğüne Kalan Süre (Tahmini)</p>
+                <div id="wedding-timer" style="font-size:1.5rem; font-weight:bold; margin:20px 0;">Hesaplanıyor...</div>
+                <p style="font-size:0.7rem;">04.04.2026</p>
+            </div>
+        </section>
+
+        <section id="wall" class="section">
+            <h2>Sevgi Duvarı</h2>
+            <div class="glass-card love-wall">
+                <div id="love-container"></div>
+            </div>
+        </section>
+
+        <section id="weather" class="section">
+            <h2>Kalp Havası</h2>
+            <div class="glass-card">
+                <i class="fas fa-sun" style="font-size:3rem; color:yellow; margin-bottom:10px;"></i>
+                <h3>Güneşli</h3>
+                <p>Çünkü sen yanımdasın.</p>
+            </div>
+        </section>
+
+        <section id="quiz" class="section">
+            <h2>Kim Daha...</h2>
+            <div class="glass-card">
+                <p id="quiz-q" style="font-size:1.2rem; margin-bottom:20px;">En kıskanç kim?</p>
+                <button style="width:100%; padding:15px; margin-top:5px; background:#222; border:1px solid #444; color:white; border-radius:8px; font-weight:bold;" onclick="checkQuiz('Mustafa')">Mustafa</button>
+                <button style="width:100%; padding:15px; margin-top:5px; background:#222; border:1px solid #444; color:white; border-radius:8px; font-weight:bold;" onclick="checkQuiz('Dilara')">Dilara</button>
+            </div>
+        </section>
+
+        <section id="pet" class="section">
+            <h2>Pet</h2>
+            <div class="glass-card">
+                <div id="tama-icon" style="font-size:4rem; cursor:pointer;" onclick="feedPet()">👾</div>
+                <div style="width:100%; height:10px; background:#333; border-radius:5px; margin-top:10px;"><div id="tama-health" style="height:100%; background:#00ffaa; width:50%;"></div></div>
+            </div>
+        </section>
+
+        <section id="secret" class="section">
+            <h2>Gizli Kasa</h2>
+            <div class="glass-card">
+                <div id="code-display" class="code-display"></div>
+                <div class="numpad">
+                    <div class="num-btn" onclick="addCode(1)">1</div><div class="num-btn" onclick="addCode(2)">2</div><div class="num-btn" onclick="addCode(3)">3</div>
+                    <div class="num-btn" onclick="addCode(4)">4</div><div class="num-btn" onclick="addCode(5)">5</div><div class="num-btn" onclick="addCode(6)">6</div>
+                    <div class="num-btn" onclick="addCode(7)">7</div><div class="num-btn" onclick="addCode(8)">8</div><div class="num-btn" onclick="addCode(9)">9</div>
+                    <div class="num-btn" onclick="clearCode()">C</div><div class="num-btn" onclick="addCode(0)">0</div><div class="num-btn" onclick="checkCode()">OK</div>
+                </div>
             </div>
         </section>
     </main>
@@ -114,202 +335,60 @@
             <div id="header-3d"><h2 id="mode-title" style="font-size:1.5rem;">REAKTÖR</h2></div>
             <div id="status-3d">En attente...</div>
             <div id="pip-container"><canvas id="pip-canvas"></canvas></div>
-            <button id="btn-start-3d" onclick="init3DSystem()">LANCER</button>
+            <button id="btn-start-3d" onclick="init3DSystem()">BAŞLAT</button>
         </div>
     </div>
 
     <video id="webcam-video" playsinline muted></video>
 
     <script>
-        // CONFIG
-        const PHOTO_URL = 'photo.jpg'; 
-        const PARTICLE_COUNT = 7000;
-        const REACTION_SPEED = 0.4; // ULTRA REACTIF
+        /* === JS NEW TABS === */
+        // Affirmation
+        const affs = ["Sen bir harikasın!", "Bugün çok güzelsin.", "Seni her şeyden çok seviyorum.", "Gülüşün güneşim.", "Sen benim her şeyimsin."];
+        function newAffirmation() { document.getElementById('aff-text').innerText = affs[Math.floor(Math.random()*affs.length)]; }
+        
+        // Countdown
+        const weddingDate = new Date('2026-04-04T00:00:00').getTime();
+        setInterval(() => {
+            const now = new Date().getTime();
+            const dist = weddingDate - now;
+            const d = Math.floor(dist / (1000 * 60 * 60 * 24));
+            document.getElementById('wedding-timer').innerText = d + " Gün Kaldı!";
+        }, 1000);
 
-        // VARS
-        let currentMode = 'site';
-        let scene, camera, renderer, particles, geometry;
-        let animationId, cameraUtils, hands;
-        let is3DInitialized = false;
-        let targetPositions = [], originalPositions = [], randomPositions = [];
-        let expansionFactor = 1.0, targetExpansion = 1.0, pulseTime = 0;
-
-        // NAV
-        function goSite(id) { switchView('view-site'); document.getElementById(id).scrollIntoView({behavior:'smooth'}); updateNavUI(id); }
-        function goMode(mode) {
-            currentMode = mode; switchView('view-3d');
-            const t = document.getElementById('mode-title');
-            if(mode === 'reactor') { t.innerText="REAKTÖR"; t.style.color="#ff0a43"; }
-            else { t.innerText="HOLOGRAM"; t.style.color="#00e5ff"; }
-            if(!is3DInitialized) document.getElementById('btn-start-3d').style.display = 'block';
-            else { if(mode === 'hologram') loadHologramImage(); else setupReactor(); }
-            updateNavUI(mode);
-        }
-        function switchView(id) { document.querySelectorAll('.view-layer').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
-        function updateNavUI(id) { document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active'); if(e.onclick.toString().includes(id)) e.classList.add('active');}); }
-
-        // 3D INIT
-        function init3DSystem() {
-            document.getElementById('btn-start-3d').style.display = 'none';
-            const container = document.getElementById('canvas-container');
-            container.innerHTML = '';
-            
-            scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.003);
-            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-            camera.position.z = 100;
-            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-            container.appendChild(renderer.domElement);
-
-            startCamera();
-            if(currentMode==='reactor') setupReactor(); else loadHologramImage();
-            animate();
-            is3DInitialized = true;
+        // Wall of Love
+        const wallContainer = document.getElementById('love-container');
+        const languages = ["Seni Seviyorum", "I Love You", "Je t'aime", "Ti Amo", "Te Quiero", "Ich Liebe Dich", "Aishiteru", "Saranghae"];
+        for(let i=0; i<15; i++) {
+            const span = document.createElement('div');
+            span.className = 'love-text';
+            span.innerText = languages[Math.floor(Math.random()*languages.length)];
+            span.style.left = Math.random()*80 + 10 + '%';
+            span.style.animationDuration = (Math.random()*5 + 5) + 's';
+            span.style.animationDelay = Math.random()*5 + 's';
+            wallContainer.appendChild(span);
         }
 
-        // REACTOR
-        function setupReactor() {
-            if(particles) scene.remove(particles);
-            geometry = new THREE.BufferGeometry();
-            const pos = new Float32Array(PARTICLE_COUNT*3);
-            const col = new Float32Array(PARTICLE_COUNT*3);
-            targetPositions = [];
-            const c = new THREE.Color(0xff0040);
-            for(let i=0; i<PARTICLE_COUNT; i++) {
-                const t=Math.random()*Math.PI*2, d=Math.pow(Math.random(),0.5);
-                let x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t), z=(Math.random()-0.5)*12*d;
-                targetPositions.push(x*1.5*d, y*1.5*d, z*1.5*d);
-                pos[i*3]=(Math.random()-0.5)*500; pos[i*3+1]=(Math.random()-0.5)*500; pos[i*3+2]=(Math.random()-0.5)*500;
-                col[i*3]=c.r; col[i*3+1]=c.g; col[i*3+2]=c.b;
-            }
-            geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-            geometry.setAttribute('color', new THREE.BufferAttribute(col, 3));
-            const mat = new THREE.PointsMaterial({size:2.5, vertexColors:true, blending:THREE.AdditiveBlending, transparent:true});
-            particles = new THREE.Points(geometry, mat);
-            scene.add(particles);
+        /* === JS PREVIOUS TABS === */
+        const dates=["Sushi Yapımı 🍣", "Korku Filmi 🍿", "Gece Pikniği 🚗", "Lunapark 🎢", "Resim Çizme 🎨", "Sahil 🌊"];
+        function genDate() { 
+            const r = document.getElementById('date-result'); r.style.opacity = 0;
+            setTimeout(() => { r.innerText = dates[Math.floor(Math.random()*dates.length)]; r.style.opacity = 1; }, 200);
         }
-
-        // HOLOGRAM
-        function loadHologramImage() {
-            const img = new Image(); img.src = PHOTO_URL;
-            img.onload = () => {
-                const cvs = document.createElement('canvas'); const ctx = cvs.getContext('2d');
-                const scale = 200/img.width; cvs.width=200; cvs.height=img.height*scale;
-                ctx.drawImage(img,0,0,cvs.width,cvs.height);
-                try { createHolo(ctx.getImageData(0,0,cvs.width,cvs.height)); } catch(e){ alert("Erreur Local"); }
-            };
+        function checkQuiz(ans) { ans==='Mustafa'?alert("Doğru! 😜"):alert("Yanlış! Bence Mustafa 😂"); }
+        let code=""; function addCode(n){if(code.length<6)code+=n;upCode();} function clearCode(){code="";upCode();} function upCode(){document.getElementById('code-display').innerText=code.split('').map(()=>'*').join('');} 
+        function checkCode(){
+            switch(code) {
+                case "131124": alert("Aşkımızın Başlangıcı! ❤️"); break;
+                case "170524": alert("Sözlendik! 💍"); break;
+                case "040426": alert("Evleniyoruz! 👰🤵"); break;
+                case "020799": alert("İyi ki doğdun Dilara! 🎂"); break;
+                case "200396": alert("Doğum Günüm! 🎉"); break;
+                default: alert("Yanlış Şifre!");
+            } code=""; upCode();
         }
-        function createHolo(data) {
-            if(particles) scene.remove(particles);
-            geometry = new THREE.BufferGeometry();
-            const w=data.width, h=data.height, d=data.data;
-            const count=w*h; 
-            const pos = [], col = [];
-            originalPositions = []; randomPositions = [];
-            
-            for(let y=0; y<h; y++) {
-                for(let x=0; x<w; x++) {
-                    const i=(y*w+x)*4;
-                    if(d[i+3]>50) {
-                        const r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
-                        const px=(x-w/2)*0.8, py=(h/2-y)*0.8, pz=(r+g+b)*5;
-                        pos.push(px, py, pz);
-                        col.push(r,g,b);
-                        originalPositions.push(px, py, pz);
-                        randomPositions.push((Math.random()-0.5)*800, (Math.random()-0.5)*800, (Math.random()-0.5)*800);
-                    }
-                }
-            }
-            geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-            geometry.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
-            const mat = new THREE.PointsMaterial({size:1.5, vertexColors:true, transparent:true});
-            particles = new THREE.Points(geometry, mat);
-            scene.add(particles);
-        }
-
-        // ANIMATION (NERVOUS)
-        function animate() {
-            requestAnimationFrame(animate);
-            if(!particles) return;
-            
-            // Rotation STOP if hands detected to allow control
-            if(currentMode === 'reactor') particles.rotation.y += 0.003;
-            else { particles.rotation.y = 0; }
-
-            const pos = geometry.attributes.position.array;
-            expansionFactor += (targetExpansion - expansionFactor) * REACTION_SPEED;
-
-            if(currentMode === 'reactor') {
-                for(let i=0; i<pos.length; i++) {
-                    pos[i] += (targetPositions[i]*expansionFactor - pos[i]) * REACTION_SPEED;
-                }
-            } else {
-                const ratio = expansionFactor;
-                for(let i=0; i<pos.length; i+=3) {
-                    pos[i] = originalPositions[i/3] + (randomPositions[i/3] - originalPositions[i/3]) * ratio;
-                    pos[i+1] = originalPositions[i/3+1] + (randomPositions[i/3+1] - originalPositions[i/3+1]) * ratio;
-                    pos[i+2] = originalPositions[i/3+2] + (randomPositions[i/3+2] - originalPositions[i/3+2]) * ratio;
-                }
-            }
-            geometry.attributes.position.needsUpdate = true;
-            renderer.render(scene, camera);
-        }
-
-        // CAMERA
-        function startCamera() {
-            const vid = document.getElementById('webcam-video');
-            const cvs = document.getElementById('pip-canvas');
-            const ctx = cvs.getContext('2d');
-            const stat = document.getElementById('status-3d');
-
-            hands = new Hands({locateFile: (f) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
-            hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:0.5});
-            
-            hands.onResults((res) => {
-                // FORCE DRAW VIDEO
-                ctx.save();
-                ctx.clearRect(0,0,cvs.width,cvs.height);
-                ctx.drawImage(res.image, 0, 0, cvs.width, cvs.height);
-                if(res.multiHandLandmarks) {
-                    for(const l of res.multiHandLandmarks) drawConnectors(ctx, l, HAND_CONNECTIONS, {color:'#00ff00', lineWidth:2});
-                }
-                ctx.restore();
-
-                if(res.multiHandLandmarks.length > 0) {
-                    stat.innerText = "CONNEXION OK !"; stat.style.color = "#00ffaa";
-                    let dist = 0;
-                    if(res.multiHandLandmarks.length === 2) {
-                        const h1 = res.multiHandLandmarks[0][8], h2 = res.multiHandLandmarks[1][8];
-                        dist = Math.sqrt(Math.pow(h1.x-h2.x,2)+Math.pow(h1.y-h2.y,2));
-                    }
-                    
-                    if(currentMode === 'reactor') {
-                        // Cœur : 1 main = un peu gros, 2 mains = distance
-                        let val = (res.multiHandLandmarks.length === 2) ? dist * 7 : 1.5;
-                        if(val<0.8) val=0.8; if(val>5) val=5;
-                        targetExpansion = val;
-                    } else {
-                        // Hologram : 2 mains écartées = explosion
-                        if(res.multiHandLandmarks.length === 2) {
-                            let val = (dist - 0.2) * 3.0; 
-                            if(val<0) val=0; if(val>1) val=1;
-                            targetExpansion = val;
-                        } else targetExpansion = 0;
-                    }
-                } else {
-                    stat.innerText = "En attente..."; stat.style.color = "#fff";
-                    if(currentMode === 'reactor') { pulseTime+=0.15; targetExpansion=1+Math.sin(pulseTime)*0.2; }
-                    else targetExpansion=0;
-                }
-            });
-
-            cameraUtils = new Camera(vid, {onFrame: async()=>{await hands.send({image:vid})}, width:320, height:240});
-            cameraUtils.start();
-        }
-
-        // EXTRAS
+        
+        // Timer
         const startT = new Date('2024-11-13T00:00:00').getTime();
         setInterval(() => {
             const d = new Date().getTime() - startT;
@@ -318,8 +397,174 @@
             document.getElementById('m').innerText = Math.floor((d%(1000*60*60))/(1000*60));
             document.getElementById('s').innerText = Math.floor((d%(1000*60))/1000);
         }, 1000);
-        
-        function openMsg() { document.getElementById('msg-text').innerText = "Seni seviyorum..."; }
+
+        // Pet
+        let health=50; function feedPet(){health=Math.min(100,health+20);updatePet();} setInterval(()=>{health=Math.max(0,health-5);updatePet();},1000); function updatePet(){document.getElementById('tama-health').style.width=health+'%';}
+
+        // Nav
+        function goSite(id){ switchView('view-site'); document.getElementById(id).scrollIntoView({behavior:'smooth'}); updateNavUI(id); }
+        function goMode(mode){ 
+            currentMode=mode; switchView('view-3d'); 
+            const t=document.getElementById('mode-title');
+            if(mode==='reactor'){t.innerText="KALP REAKTÖRÜ";t.style.color="#ff0a43";}else{t.innerText="HOLOGRAM";t.style.color="#00e5ff";}
+            if(!is3DInitialized) document.getElementById('btn-start-3d').style.display='block';
+            else { if(mode==='hologram') loadHolo(); else setupReactor(); }
+            updateNavUI(mode);
+        }
+        function switchView(id){ document.querySelectorAll('.view-layer').forEach(e=>e.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+        function updateNavUI(id){ document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active'); if(e.onclick.toString().includes(id)) e.classList.add('active');}); }
+
+        /* === 3D LOGIC === */
+        const PHOTO_URL = 'photo.jpg'; 
+        const PARTICLE_COUNT = 7000;
+        const REACTION_SPEED = 0.4; 
+
+        let currentMode='site', scene, camera, renderer, particles, geometry, animationId, cameraUtils, hands;
+        let is3DInitialized=false, targetPositions=[], originalPositions=[], randomPositions=[];
+        let expansionFactor=1.0, targetExpansion=1.0, pulseTime=0;
+
+        function init3DSystem() {
+            document.getElementById('btn-start-3d').style.display='none';
+            const cont = document.getElementById('canvas-container'); cont.innerHTML='';
+            scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x000000, 0.003);
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000); camera.position.z = 100;
+            renderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            cont.appendChild(renderer.domElement);
+            startCamera();
+            if(currentMode==='reactor') setupReactor(); else loadHolo();
+            animate();
+            is3DInitialized = true;
+        }
+
+        function setupReactor() {
+            if(particles) scene.remove(particles);
+            geometry = new THREE.BufferGeometry();
+            const pos=[], col=[]; targetPositions=[];
+            const c = new THREE.Color(0xff0040);
+            for(let i=0; i<PARTICLE_COUNT; i++){
+                const t=Math.random()*Math.PI*2, d=Math.pow(Math.random(),0.5);
+                let x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t), z=(Math.random()-0.5)*12*d;
+                targetPositions.push(x*1.5*d, y*1.5*d, z*1.5*d);
+                pos.push((Math.random()-0.5)*500, (Math.random()-0.5)*500, (Math.random()-0.5)*500);
+                col.push(c.r, c.g, c.b);
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(col,3));
+            const sprite = new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png');
+            const mat = new THREE.PointsMaterial({size:2.5, map:sprite, vertexColors:true, blending:THREE.AdditiveBlending, transparent:true});
+            particles = new THREE.Points(geometry, mat);
+            scene.add(particles);
+        }
+
+        function loadHolo() {
+            const img=new Image(); img.src=PHOTO_URL;
+            img.onload=()=>{
+                const cvs=document.createElement('canvas'); const ctx=cvs.getContext('2d');
+                const scale=200/img.width; cvs.width=200; cvs.height=img.height*scale;
+                ctx.drawImage(img,0,0,cvs.width,cvs.height);
+                try{createHolo(ctx.getImageData(0,0,cvs.width,cvs.height));}catch(e){}
+            };
+        }
+        function createHolo(data) {
+            if(particles) scene.remove(particles);
+            geometry = new THREE.BufferGeometry();
+            const w=data.width, h=data.height, d=data.data;
+            const pos=[], col=[]; originalPositions=[]; randomPositions=[];
+            for(let y=0; y<h; y++){
+                for(let x=0; x<w; x++){
+                    const i=(y*w+x)*4;
+                    if(d[i+3]>50){
+                        const r=d[i]/255, g=d[i+1]/255, b=d[i+2]/255;
+                        const px=(x-w/2)*0.8, py=(h/2-y)*0.8, pz=(r+g+b)*5;
+                        pos.push(px,py,pz); col.push(r,g,b);
+                        originalPositions.push(px,py,pz);
+                        randomPositions.push((Math.random()-0.5)*800, (Math.random()-0.5)*800, (Math.random()-0.5)*800);
+                    }
+                }
+            }
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(pos,3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(col,3));
+            const sprite = new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png');
+            const mat = new THREE.PointsMaterial({size:1.5, map:sprite, vertexColors:true, transparent:true});
+            particles = new THREE.Points(geometry, mat);
+            scene.add(particles);
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            if(!particles) return;
+            if(currentMode==='reactor') particles.rotation.y+=0.003; else {particles.rotation.y=0; particles.rotation.x=0;}
+            
+            expansionFactor += (targetExpansion - expansionFactor) * REACTION_SPEED;
+            const pos = geometry.attributes.position.array;
+
+            if(currentMode==='reactor') {
+                for(let i=0; i<pos.length; i++){
+                    pos[i] += (targetPositions[i]*expansionFactor - pos[i]) * REACTION_SPEED;
+                }
+            } else {
+                const r = expansionFactor;
+                for(let i=0; i<pos.length; i+=3){
+                    pos[i] = originalPositions[i/3] + (randomPositions[i/3] - originalPositions[i/3]) * r;
+                    pos[i+1] = originalPositions[i/3+1] + (randomPositions[i/3+1] - originalPositions[i/3+1]) * r;
+                    pos[i+2] = originalPositions[i/3+2] + (randomPositions[i/3+2] - originalPositions[i/3+2]) * r;
+                }
+            }
+            geometry.attributes.position.needsUpdate = true;
+            renderer.render(scene, camera);
+        }
+
+        function startCamera() {
+            const vid=document.getElementById('webcam-video');
+            const cvs=document.getElementById('pip-canvas'); const ctx=cvs.getContext('2d');
+            const stat=document.getElementById('status-3d');
+            
+            hands = new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+            hands.setOptions({maxNumHands:2, modelComplexity:0, minDetectionConfidence:0.4});
+            
+            hands.onResults((res)=>{
+                ctx.save(); ctx.clearRect(0,0,cvs.width,cvs.height);
+                ctx.drawImage(res.image,0,0,cvs.width,cvs.height);
+                if(res.multiHandLandmarks) for(const l of res.multiHandLandmarks) drawConnectors(ctx,l,HAND_CONNECTIONS,{color:'#00ff00',lineWidth:2});
+                ctx.restore();
+
+                if(res.multiHandLandmarks.length>0) {
+                    stat.innerText = "BAĞLANDI!"; stat.style.color="#00ffaa";
+                    let dist=0;
+                    if(res.multiHandLandmarks.length===2) {
+                        const h1=res.multiHandLandmarks[0][8], h2=res.multiHandLandmarks[1][8];
+                        dist=Math.sqrt(Math.pow(h1.x-h2.x,2)+Math.pow(h1.y-h2.y,2));
+                    }
+                    if(currentMode==='reactor') {
+                        let val = (res.multiHandLandmarks.length===2) ? dist*8 : 1.5;
+                        if(val<0.8) val=0.8; if(val>6) val=6;
+                        targetExpansion=val;
+                    } else {
+                        // Hologram: Distance controls explosion.
+                        if(res.multiHandLandmarks.length===2) {
+                            let val = (dist - 0.2) * 3.0; 
+                            if(val<0) val=0; if(val>1) val=1;
+                            targetExpansion = val;
+                        } else targetExpansion=0;
+                    }
+                } else {
+                    stat.innerText = "Ellerini göster..."; stat.style.color="#fff";
+                    if(currentMode==='reactor') { pulseTime+=0.15; targetExpansion=1+Math.sin(pulseTime)*0.2; }
+                    else targetExpansion=0;
+                }
+            });
+            cameraUtils = new Camera(vid, {onFrame: async()=>{await hands.send({image:vid})}, width:320, height:240});
+            cameraUtils.start();
+        }
+
+        const msgs = ["Senin gülüşün...", "Her anım seninle...", "Seni çok seviyorum", "İyi ki varsın"];
+        function openMsg() {
+            const el = document.getElementById('msg-text'); el.style.opacity = 0;
+            setTimeout(()=>{el.innerText = msgs[Math.floor(Math.random()*msgs.length)]; el.style.opacity=1},300);
+        }
+
         window.addEventListener('resize', ()=>{ if(camera){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);} });
     </script>
 </body>
