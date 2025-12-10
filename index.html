@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sadece Dilara'ya | Ultimate App ❤️</title>
+    <title>Sadece Dilara'ya | Ultimate V3 ❤️</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -38,7 +38,6 @@
             opacity: 1; pointer-events: auto; transform: scale(1); z-index: 5;
         }
         
-        /* Specific Backgrounds */
         #view-site { background: radial-gradient(circle at center, #1a0000 0%, #000000 90%); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; }
         #view-3d { background: black; overflow: hidden; }
 
@@ -176,27 +175,25 @@
 
     <script>
         // === GLOBAL VARIABLES ===
-        let currentMode = 'site'; // 'site', 'reactor', 'hologram'
+        let currentMode = 'site';
         let scene, camera, renderer, particles, geometry;
-        let animationId;
-        let cameraUtils, hands;
+        let animationId, cameraUtils, hands;
         let is3DInitialized = false;
         
-        // Data Containers
-        let targetPositions = []; // For Reactor
-        let originalPositions = [], randomPositions = []; // For Hologram
+        // Data
+        let targetPositions = [], originalPositions = [], randomPositions = [];
         
-        // State
+        // State Physics
         let expansionFactor = 1.0;
         let targetExpansion = 1.0;
-        let energyLevel = 0;
         let pulseTime = 0;
 
-        // Configuration
-        const PHOTO_URL = 'photo.jpg'; // DOIT ÊTRE DANS LE DOSSIER
-        const PARTICLE_COUNT_REACTOR = 6000;
-        
-        // === 1. NAVIGATION LOGIC ===
+        // CONFIG OPTIMISÉE POUR LA PERFORMANCE ET LA QUALITÉ
+        const PHOTO_URL = 'photo.jpg'; // Obligatoire
+        const PARTICLE_COUNT_REACTOR = 7000;
+        const REACTION_SPEED = 0.3; // 0.1 était trop lent, 0.3 est vif.
+
+        // === 1. NAVIGATION ===
         function goSite(sectionId) {
             stop3D();
             switchView('view-site');
@@ -219,7 +216,6 @@
                 title.style.color = "#00e5ff";
             }
             
-            // Show start button again if stopped
             btn.style.display = 'block';
             updateNavUI(mode);
         }
@@ -239,11 +235,9 @@
         // === 2. 3D SYSTEM (THREE.JS) ===
         function init3DSystem() {
             document.getElementById('btn-start-3d').style.display = 'none';
-            
             const container = document.getElementById('canvas-container');
-            container.innerHTML = ''; // Clear previous
+            container.innerHTML = ''; 
 
-            // Setup Basic Scene
             scene = new THREE.Scene();
             scene.fog = new THREE.FogExp2(0x000000, 0.003);
             camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
@@ -254,13 +248,12 @@
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
             container.appendChild(renderer.domElement);
 
-            // Load Content based on Mode
             if (currentMode === 'reactor') {
                 setupReactor();
                 startCamera(); 
                 animate();
             } else if (currentMode === 'hologram') {
-                loadHologramImage(); // Will start camera/animate after load
+                loadHologramImage();
             }
         }
 
@@ -269,80 +262,76 @@
             if(cameraUtils) cameraUtils.stop();
             if(renderer) {
                 renderer.dispose();
-                const container = document.getElementById('canvas-container');
-                container.innerHTML = '';
+                document.getElementById('canvas-container').innerHTML = '';
             }
             is3DInitialized = false;
         }
 
-        // --- MODE A: REACTOR (Heart) ---
+        // --- MODE: REACTOR ---
         function setupReactor() {
             geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(PARTICLE_COUNT_REACTOR * 3);
             const colors = new Float32Array(PARTICLE_COUNT_REACTOR * 3);
-            targetPositions = []; // Reset
+            targetPositions = [];
 
-            const color1 = new THREE.Color(0xff0040);
-            const color2 = new THREE.Color(0xffaa00);
+            const c1 = new THREE.Color(0xff0040);
+            const c2 = new THREE.Color(0xffaa00);
 
             for(let i=0; i<PARTICLE_COUNT_REACTOR; i++) {
-                // Heart Math
+                // Formule Cœur
                 const t = Math.random() * Math.PI * 2;
-                const d = Math.pow(Math.random(), 0.5);
+                const d = Math.pow(Math.random(), 0.5); // Densité centre
                 
                 let x = 16 * Math.pow(Math.sin(t), 3);
                 let y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
-                let z = (Math.random() - 0.5) * 10 * d;
+                let z = (Math.random() - 0.5) * 12 * d;
 
                 const ix = i*3;
                 targetPositions[ix] = x * 1.5 * d;
                 targetPositions[ix+1] = y * 1.5 * d;
                 targetPositions[ix+2] = z * 1.5 * d;
 
-                // Start positions (Explosion)
+                // Position Départ
                 positions[ix] = (Math.random()-0.5)*500;
                 positions[ix+1] = (Math.random()-0.5)*500;
                 positions[ix+2] = (Math.random()-0.5)*500;
 
-                // Colors
-                colors[ix] = color1.r; colors[ix+1] = color1.g; colors[ix+2] = color1.b;
+                // Couleurs
+                colors[ix] = c1.r; colors[ix+1] = c1.g; colors[ix+2] = c1.b;
             }
 
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-            const sprite = createTexture();
             const material = new THREE.PointsMaterial({
-                size: 2.0, map: sprite, vertexColors: true, 
-                blending: THREE.AdditiveBlending, depthWrite: false, transparent: true
+                size: 2.0, vertexColors: true, blending: THREE.AdditiveBlending, 
+                depthWrite: false, transparent: true, opacity: 0.9
             });
 
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
         }
 
-        // --- MODE B: HOLOGRAM (Photo) ---
+        // --- MODE: HOLOGRAM ---
         function loadHologramImage() {
             const img = new Image();
             img.src = PHOTO_URL;
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                const maxW = 200; // Rescale for performance
+                // Augmentation Résolution pour Netteté
+                const maxW = 280; 
                 const scale = maxW / img.width;
                 canvas.width = maxW; canvas.height = img.height * scale;
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
                 try {
                     const data = ctx.getImageData(0,0,canvas.width, canvas.height);
                     createHologramParticles(data);
                     startCamera();
                     animate();
-                } catch(e) {
-                    alert("Erreur: Impossible de lire 'photo.jpg'. Utilisez un serveur local !");
-                }
+                } catch(e) { alert("Erreur: Photo inaccessible. Utilise un serveur local."); }
             };
-            img.onerror = () => alert("Erreur: Image 'photo.jpg' introuvable !");
+            img.onerror = () => alert("Image 'photo.jpg' introuvable !");
         }
 
         function createHologramParticles(imageData) {
@@ -354,7 +343,6 @@
             const positions = new Float32Array(count * 3);
             const cols = new Float32Array(count * 3);
             
-            // Re-init arrays
             originalPositions = new Float32Array(count * 3);
             randomPositions = new Float32Array(count * 3);
             
@@ -364,26 +352,29 @@
             for(let y=0; y<h; y++) {
                 for(let x=0; x<w; x++) {
                     const i = (y*w + x) * 4;
-                    if(data[i+3] > 10) { // If visible
+                    // Ignore les pixels trop transparents
+                    if(data[i+3] > 100) { 
                         const r = data[i]/255; const g = data[i+1]/255; const b = data[i+2]/255;
-                        const brightness = (r+g+b)/3;
                         
-                        const px = (startX + x) * 0.8;
-                        const py = (startY - y) * 0.8;
-                        const pz = brightness * 40; // 3D Depth
+                        // Z Depth plat pour éviter déformation visage
+                        const pz = (r+g+b)/3 * 15; 
+                        
+                        const px = (startX + x) * 0.7;
+                        const py = (startY - y) * 0.7;
 
                         originalPositions[idx*3] = px;
                         originalPositions[idx*3+1] = py;
                         originalPositions[idx*3+2] = pz;
 
-                        randomPositions[idx*3] = (Math.random()-0.5)*800;
-                        randomPositions[idx*3+1] = (Math.random()-0.5)*800;
-                        randomPositions[idx*3+2] = (Math.random()-0.5)*800;
+                        // Explosion
+                        randomPositions[idx*3] = (Math.random()-0.5)*1000;
+                        randomPositions[idx*3+1] = (Math.random()-0.5)*1000;
+                        randomPositions[idx*3+2] = (Math.random()-0.5)*1000;
 
-                        // Start at random (exploded)
-                        positions[idx*3] = randomPositions[idx*3];
-                        positions[idx*3+1] = randomPositions[idx*3+1];
-                        positions[idx*3+2] = randomPositions[idx*3+2];
+                        // Start at Original
+                        positions[idx*3] = px;
+                        positions[idx*3+1] = py;
+                        positions[idx*3+2] = pz;
 
                         cols[idx*3] = r; cols[idx*3+1] = g; cols[idx*3+2] = b;
                         idx++;
@@ -391,7 +382,6 @@
                 }
             }
             
-            // Trim arrays
             const finalPos = positions.slice(0, idx*3);
             const finalCols = cols.slice(0, idx*3);
             
@@ -399,7 +389,7 @@
             geometry.setAttribute('color', new THREE.BufferAttribute(finalCols, 3));
 
             const material = new THREE.PointsMaterial({
-                size: 1.8, vertexColors: true, sizeAttenuation: true
+                size: 1.4, vertexColors: true, sizeAttenuation: true, opacity: 1
             });
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
@@ -410,39 +400,39 @@
             animationId = requestAnimationFrame(animate);
             if(!particles) return;
 
-            // Rotation
-            particles.rotation.y += 0.003;
+            // Rotation douce SEULEMENT pour le Réacteur
+            if (currentMode === 'reactor') {
+                particles.rotation.y += 0.003;
+            } else {
+                // Pour l'hologramme, on garde la photo stable face caméra
+                particles.rotation.y = 0; 
+                particles.rotation.x = 0;
+            }
 
-            // Physics Logic based on Mode
             const positions = geometry.attributes.position.array;
             
-            // Smoothly interpolate Interaction Factor
-            // Reactor: targetExpansion 1.0 -> 5.0
-            // Hologram: targetExpansion 0.0 (Clean) -> 1.0 (Exploded)
-            
-            // Smoothing
-            expansionFactor += (targetExpansion - expansionFactor) * 0.1;
+            // Lissage ultra-réactif (0.3 au lieu de 0.1)
+            expansionFactor += (targetExpansion - expansionFactor) * REACTION_SPEED;
 
             if (currentMode === 'reactor') {
-                // REACTOR LOGIC (Expand from center)
+                // LOGIQUE COEUR
                 for(let i=0; i<positions.length/3; i++) {
                     const ix = i*3;
                     const tx = targetPositions[ix] * expansionFactor;
                     const ty = targetPositions[ix+1] * expansionFactor;
                     const tz = targetPositions[ix+2] * expansionFactor;
                     
-                    positions[ix] += (tx - positions[ix]) * 0.2;
-                    positions[ix+1] += (ty - positions[ix+1]) * 0.2;
-                    positions[ix+2] += (tz - positions[ix+2]) * 0.2;
+                    positions[ix] += (tx - positions[ix]) * REACTION_SPEED;
+                    positions[ix+1] += (ty - positions[ix+1]) * REACTION_SPEED;
+                    positions[ix+2] += (tz - positions[ix+2]) * REACTION_SPEED;
                 }
             } else {
-                // HOLOGRAM LOGIC (Mix between Original and Random)
-                // Use expansionFactor as mix ratio (0 to 1)
+                // LOGIQUE HOLOGRAMME (Mix Original vs Explosion)
+                // expansionFactor = 0 (Photo) -> 1 (Explosion)
+                const ratio = expansionFactor; 
+                
                 for(let i=0; i<positions.length/3; i++) {
                     const ix = i*3;
-                    // Note: targetExpansion for Hologram: 0 = Original, 1 = Exploded
-                    // If hands apart -> Explode (val=1). 
-                    const ratio = expansionFactor; 
                     
                     const x = originalPositions[ix] + (randomPositions[ix] - originalPositions[ix]) * ratio;
                     const y = originalPositions[ix+1] + (randomPositions[ix+1] - originalPositions[ix+1]) * ratio;
@@ -463,36 +453,36 @@
             const video = document.getElementById('webcam-video');
             const canvas = document.getElementById('pip-canvas');
             const ctx = canvas.getContext('2d');
+            const status = document.getElementById('status-3d');
             
             hands = new Hands({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`});
             hands.setOptions({maxNumHands: 2, modelComplexity: 0, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5});
             
             hands.onResults((results) => {
-                // Draw PIP
                 ctx.clearRect(0,0,canvas.width, canvas.height);
                 ctx.drawImage(results.image, 0, 0, canvas.width, canvas.height);
                 if(results.multiHandLandmarks) {
                     for(const l of results.multiHandLandmarks) drawConnectors(ctx, l, HAND_CONNECTIONS, {color: '#00ff00', lineWidth: 1});
                 }
 
-                // Logic
-                const status = document.getElementById('status-3d');
                 if(results.multiHandLandmarks.length === 2) {
-                    const h1 = results.multiHandLandmarks[0][8];
-                    const h2 = results.multiHandLandmarks[1][8];
-                    const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
-                    
+                    // DEUX MAINS DETECTEES
                     status.innerText = "CONNEXION ÉTABLIE";
                     status.style.color = "#00ffaa";
 
+                    const h1 = results.multiHandLandmarks[0][8];
+                    const h2 = results.multiHandLandmarks[1][8];
+                    const dist = Math.sqrt(Math.pow(h1.x-h2.x, 2) + Math.pow(h1.y-h2.y, 2));
+
                     if(currentMode === 'reactor') {
-                        // Reactor: Close = Small(1), Far = Big(4)
-                        let val = dist * 6.0;
-                        if(val < 0.8) val = 0.8; if(val > 4.5) val = 4.5;
+                        // Reactor: Close=Small, Far=Big
+                        let val = dist * 7.0;
+                        if(val < 0.8) val = 0.8; if(val > 5.0) val = 5.0;
                         targetExpansion = val;
                     } else {
-                        // Hologram: Close = Original(0), Far = Explode(1)
-                        let val = (dist - 0.1) * 2.0;
+                        // Hologram: Close=Original(0), Far=Explode(1)
+                        // Ajusté pour que la photo reste intacte si les mains sont proches
+                        let val = (dist - 0.2) * 2.5; 
                         if(val < 0) val = 0; if(val > 1) val = 1;
                         targetExpansion = val;
                     }
@@ -502,12 +492,10 @@
                     status.style.color = "#888";
                     
                     if(currentMode === 'reactor') {
-                        // Heartbeat
-                        pulseTime += 0.1;
-                        targetExpansion = 1.0 + Math.sin(pulseTime)*0.15;
+                        pulseTime += 0.15; // Battement rapide
+                        targetExpansion = 1.0 + Math.sin(pulseTime)*0.2;
                     } else {
-                        // Photo Clean
-                        targetExpansion = 0;
+                        targetExpansion = 0; // Photo intacte par défaut
                     }
                 }
             });
@@ -532,7 +520,7 @@
             return t;
         }
 
-        // --- SITE JS (Timer, etc) ---
+        // --- SITE JS ---
         const start = new Date('2024-11-13T00:00:00').getTime();
         setInterval(() => {
             const diff = new Date().getTime() - start;
