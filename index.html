@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sadece Dilara'ya | Ultimate V4 Glow ❤️</title>
+    <title>Sadece Dilara'ya | Ultimate V5 Clean ❤️</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -265,7 +265,7 @@
             is3DInitialized = false;
         }
 
-        // --- MODE: REACTOR ---
+        // --- MODE: REACTOR (Garde son style lumineux) ---
         function setupReactor() {
             geometry = new THREE.BufferGeometry();
             const positions = new Float32Array(PARTICLE_COUNT_REACTOR * 3);
@@ -297,7 +297,6 @@
             geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
-            // Texture rouge pour le coeur
             const sprite = createTexture('#ff0040');
             const material = new THREE.PointsMaterial({
                 size: 2.5, map: sprite, vertexColors: true, blending: THREE.AdditiveBlending, 
@@ -308,7 +307,7 @@
             scene.add(particles);
         }
 
-        // --- MODE: HOLOGRAM ---
+        // --- MODE: HOLOGRAM (Style Original Net) ---
         function loadHologramImage() {
             const img = new Image();
             img.src = PHOTO_URL;
@@ -350,7 +349,6 @@
                     if(data[i+3] > 100) { 
                         const r = data[i]/255; const g = data[i+1]/255; const b = data[i+2]/255;
                         
-                        // Z Depth réduit pour garder la photo compacte
                         const pz = (r+g+b)/3 * 10; 
                         
                         const px = (startX + x) * 0.7;
@@ -380,17 +378,15 @@
             geometry.setAttribute('position', new THREE.BufferAttribute(finalPos, 3));
             geometry.setAttribute('color', new THREE.BufferAttribute(finalCols, 3));
 
-            // Texture blanche pour l'hologramme (pour prendre la couleur du pixel)
-            const sprite = createTexture('#ffffff');
-            // ADDITIVE BLENDING + TAILLE PLUS GRANDE = G L O W
+            // STYLE ORIGINAL : Disque simple, pas de glow
+            const sprite = new THREE.TextureLoader().load('https://threejs.org/examples/textures/sprites/disc.png');
             const material = new THREE.PointsMaterial({
-                size: 3.0, // Taille augmentée
+                size: 1.5, // Taille plus petite
                 map: sprite,
                 vertexColors: true, 
-                blending: THREE.AdditiveBlending, // Le secret du glow
-                depthWrite: false,
-                transparent: true,
-                opacity: 1.0
+                alphaTest: 0.5, // Bords nets
+                transparent: true
+                // Pas d'additive blending
             });
             particles = new THREE.Points(geometry, material);
             scene.add(particles);
@@ -499,15 +495,14 @@
             cameraUtils.start();
         }
 
-        // --- UTILS: GLOWING SPRITE CREATOR ---
+        // --- UTILS ---
         function createTexture(colorHex) {
             const c = document.createElement('canvas'); c.width=64; c.height=64;
             const cx = c.getContext('2d');
             const g = cx.createRadialGradient(32,32,0,32,32,32);
-            // Centre lumineux, bord transparent
-            g.addColorStop(0, colorHex); // Couleur centrale
+            g.addColorStop(0, colorHex); 
             g.addColorStop(0.4, colorHex); 
-            g.addColorStop(1, 'rgba(0,0,0,0)'); // Bord transparent
+            g.addColorStop(1, 'rgba(0,0,0,0)');
             cx.fillStyle = g; cx.fillRect(0,0,64,64);
             const t = new THREE.Texture(c); t.needsUpdate = true;
             return t;
