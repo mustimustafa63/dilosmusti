@@ -3,428 +3,445 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Dilara'nın Evreni 🌌</title>
+    <title>Sadece Dilara | Ultimate Edition ❤️</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;500;800&family=Sacramento&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
     
     <style>
-        :root {
-            --bg: #050510;
-            --accent: #ff0a43;
-            --gold: #ffd700;
-            --glass: rgba(20, 20, 30, 0.95);
-        }
+        /* --- CORE STYLES --- */
+        :root { --primary: #ff0a43; --gold: #ffd700; --bg: #050505; --glass: rgba(20, 20, 20, 0.9); }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: 'Montserrat', sans-serif; color: white; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Montserrat', sans-serif;
-            overflow: hidden; 
-            width: 100vw; height: 100vh;
-        }
-
-        /* === CANEVAS === */
-        canvas#universe {
-            position: absolute; top: 0; left: 0;
-            z-index: 1; cursor: grab;
-        }
-        canvas#universe:active { cursor: grabbing; }
-
-        /* === UI OVERLAY === */
-        #ui-layer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; z-index: 10;
-        }
-
-        .instruction {
-            position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
-            font-size: 0.8rem; opacity: 0.7; letter-spacing: 2px;
-            animation: pulse 2s infinite; text-align: center; width: 100%;
-            text-shadow: 0 0 10px black;
-        }
-
-        .reset-view {
-            position: absolute; top: 20px; right: 20px;
-            pointer-events: auto; background: rgba(255,255,255,0.1);
-            padding: 10px 20px; border-radius: 20px; cursor: pointer;
-            font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        /* === MODAL (CONTENU) === */
-        #modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); backdrop-filter: blur(10px);
-            z-index: 100;
-            display: none; justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s ease;
-        }
-        #modal.active { display: flex; opacity: 1; pointer-events: auto; }
-
-        .modal-card {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border: 1px solid rgba(255,255,255,0.1);
-            width: 90%; max-width: 500px; max-height: 85vh;
-            border-radius: 25px;
-            padding: 30px;
-            position: relative;
-            transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            overflow-y: auto;
-            box-shadow: 0 0 60px rgba(255, 10, 67, 0.15);
-            text-align: center;
-        }
-        #modal.active .modal-card { transform: scale(1); }
-
-        .close-btn {
-            position: absolute; top: 15px; right: 15px;
-            width: 35px; height: 35px; background: rgba(255,255,255,0.1);
-            border-radius: 50%; display: flex; justify-content: center; align-items: center;
-            cursor: pointer; transition: 0.3s; z-index: 10;
-        }
-        .close-btn:hover { background: var(--accent); transform: rotate(90deg); }
-
-        /* === STYLES INTERNES AUX MODALES === */
-        h2 { font-family: 'Sacramento', cursive; font-size: 2.5rem; color: var(--accent); margin-bottom: 20px; }
-        .btn {
-            background: linear-gradient(45deg, #ff0a43, #ff69b4); color: white; border: none; padding: 12px 30px;
-            border-radius: 30px; font-weight: bold; margin-top: 20px; cursor: pointer; width: 100%;
-            box-shadow: 0 5px 15px rgba(255, 10, 67, 0.4);
-        }
+        /* --- VIEW MANAGEMENT --- */
+        .view-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 0; pointer-events: none; z-index: 0; transform: scale(0.95); }
+        .view-layer.active { opacity: 1; pointer-events: auto; z-index: 5; transform: scale(1); }
         
-        /* Grid Layouts */
-        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .photo-img { width: 100%; height: 120px; background-size: cover; background-position: center; border-radius: 10px; }
-        
-        .timer-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top:20px; }
-        .t-box div:first-child { font-size: 1.5rem; font-weight: bold; color: var(--gold); }
-        .t-box div:last-child { font-size: 0.6rem; text-transform: uppercase; opacity: 0.7; }
+        #view-site { background: radial-gradient(circle at center, #1a0000 0%, #000000 90%); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; padding-bottom: 100px; }
+        #view-3d { background: black; overflow: hidden; }
 
+        /* --- NAVIGATION --- */
+        #navbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; height: 75px; background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px; display: flex; align-items: center; z-index: 1000; padding: 0 10px; overflow-x: auto; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
+        #navbar::-webkit-scrollbar { display: none; }
+        .nav-item { color: #666; font-size: 1.2rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; min-width: 60px; flex-shrink: 0; }
+        .nav-item span { font-size: 0.5rem; margin-top: 4px; font-weight: 700; white-space: nowrap; text-transform: uppercase; }
+        .nav-item.active { color: var(--gold); transform: translateY(-2px); }
+        .nav-item.active i { text-shadow: 0 0 10px var(--gold); }
+
+        /* --- SECTIONS --- */
+        .section { min-height: 100vh; width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        h2 { font-family: 'Sacramento', cursive; font-size: 2.5rem; color: var(--gold); margin-bottom: 20px; text-align: center; }
+        .glass-card { background: var(--glass); border: 1px solid rgba(255,215,0,0.1); border-radius: 20px; padding: 20px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+
+        /* --- MODULE STYLES --- */
+        
+        /* Album */
+        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .photo-frame { background: white; padding: 6px 6px 25px 6px; transform: rotate(-2deg); transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; color: #333; font-size: 0.7rem; font-weight: bold; }
+        .photo-frame:nth-child(even) { transform: rotate(2deg); }
+        .photo-frame:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
+        .photo-img { width: 100%; height: 120px; background-size: cover; background-position: center; border: 1px solid #eee; margin-bottom: 5px; }
+
+        /* Banko */
+        .bank-card { background: linear-gradient(135deg, #1a1a1a, #000); border-radius: 15px; padding: 20px; border: 1px solid #333; position: relative; overflow: hidden; margin-bottom: 15px; }
+        .bank-balance { font-size: 2.5rem; font-weight: 800; color: var(--gold); margin: 15px 0; font-family: monospace; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
+
+        /* Draw Canvas */
+        #draw-canvas { background: white; border-radius: 10px; width: 100%; height: 250px; cursor: crosshair; touch-action: none; }
+        .colors-row { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
+        .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
+
+        /* Mood */
         .mood-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .mood-btn { font-size: 2rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; cursor: pointer; }
+        .mood-btn { font-size: 2rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
+        .mood-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--gold); transform: scale(1.1); }
 
-        .bucket-item { text-align: left; padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
-        .bucket-item.checked { text-decoration: line-through; color: gray; }
+        /* Travel & Bucket */
+        .bucket-item { text-align: left; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; display: flex; align-items: center; gap: 10px; }
+        .bucket-item.checked { text-decoration: line-through; color: #666; }
+        .bucket-check { width: 18px; height: 18px; border: 1px solid white; border-radius: 50%; }
+        .bucket-item.checked .bucket-check { background: var(--primary); border-color: var(--primary); }
 
-        /* Canvas Draw */
-        #draw-canvas { background: white; border-radius: 10px; width: 100%; height: 250px; touch-action: none; cursor: crosshair; }
+        /* Playlist & Letters */
+        .track-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #333; text-align: left; }
+        .track-img { width: 50px; height: 50px; border-radius: 8px; margin-right: 15px; background-size: cover; }
+        .envelopes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .envelope { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; cursor: pointer; border: 1px dashed #555; transition: 0.3s; }
         
-        /* Love Wall Animation inside Modal */
-        .wall-container { height: 250px; position: relative; overflow: hidden; background: rgba(0,0,0,0.3); border-radius: 10px; }
-        .floating-text { position: absolute; white-space: nowrap; animation: floatUp linear infinite; opacity: 0.8; }
-        @keyframes floatUp { from {transform: translateY(250px);} to {transform: translateY(-50px);} }
-        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        /* 3D UI */
+        #ui-3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
+        #status-3d { position: absolute; bottom: 100px; width: 100%; text-align: center; color: #fff; text-shadow: 0 0 5px black; }
+        #btn-start-3d { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; border: none; padding: 15px 40px; font-weight: bold; pointer-events: auto; cursor: pointer; border-radius: 30px; display: none; }
+        #pip-container { position: absolute; bottom: 100px; right: 20px; width: 90px; height: 120px; border: 2px solid var(--primary); background: #000; z-index: 20; pointer-events: none; }
+        #pip-canvas { width: 100%; height: 100%; transform: scaleX(-1); object-fit: cover; }
 
+        .action-btn { background: linear-gradient(45deg, #ff0055, #ff5500); border: none; color: white; padding: 10px 25px; border-radius: 50px; font-weight: bold; margin-top: 15px; cursor: pointer; }
+        .neon-heart { width: 150px; fill: var(--primary); animation: pulse 1s infinite; filter: drop-shadow(0 0 10px var(--primary)); }
+        @keyframes pulse { 0%,100% {transform:scale(1)} 50% {transform:scale(1.1)} }
+
+        video { position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
     </style>
 </head>
 <body>
 
-    <canvas id="universe"></canvas>
+    <nav id="navbar">
+        <div class="nav-item active" onclick="goSite('home')"><i class="fas fa-heart"></i><span>Aşkım</span></div>
+        <div class="nav-item" onclick="goSite('timer')"><i class="fas fa-clock"></i><span>Zaman</span></div>
+        <div class="nav-item" onclick="goSite('album')"><i class="fas fa-camera-retro"></i><span>Polaroid</span></div>
+        <div class="nav-item" onclick="goSite('bank')"><i class="fas fa-piggy-bank"></i><span>Banko</span></div>
+        <div class="nav-item" onclick="goSite('video')"><i class="fas fa-play-circle"></i><span>Video</span></div>
+        <div class="nav-item" onclick="goSite('playlist')"><i class="fas fa-music"></i><span>Müzik</span></div>
+        <div class="nav-item" onclick="goSite('letters')"><i class="fas fa-envelope-open-text"></i><span>Mektup</span></div>
+        <div class="nav-item" onclick="goSite('dates')"><i class="fas fa-calendar-star"></i><span>Günler</span></div>
+        <div class="nav-item" onclick="goSite('mood')"><i class="fas fa-smile-wink"></i><span>Mood</span></div>
+        <div class="nav-item" onclick="goSite('draw')"><i class="fas fa-paint-brush"></i><span>Çiz</span></div>
+        <div class="nav-item" onclick="goSite('travel')"><i class="fas fa-globe-americas"></i><span>Seyahat</span></div>
+        <div class="nav-item" onclick="goSite('map')"><i class="fas fa-map-marker-alt"></i><span>Yerimiz</span></div>
+        <div class="nav-item" onclick="goSite('bucket')"><i class="fas fa-list-ul"></i><span>Hedefler</span></div>
+        <div class="nav-item" onclick="goSite('emergency')"><i class="fas fa-exclamation-triangle"></i><span>Acil</span></div>
+        <div class="nav-item" onclick="goSite('countdown')"><i class="fas fa-hourglass-start"></i><span>Düğün</span></div>
+        <div class="nav-item" onclick="goSite('wall')"><i class="fas fa-comments"></i><span>Duvar</span></div>
+        <div class="nav-item" onclick="goSite('compliment')"><i class="fas fa-star"></i><span>İltifat</span></div>
+        <div class="nav-item" onclick="goMode('reactor')" style="color: var(--primary); border-left:1px solid #333; padding-left:15px;"><i class="fas fa-atom"></i><span>Reaktör</span></div>
+        <div class="nav-item" onclick="goMode('hologram')" style="color: #00e5ff;"><i class="fas fa-cube"></i><span>Hologram</span></div>
+    </nav>
 
-    <div id="ui-layer">
-        <div class="reset-view" onclick="resetCamera()">Recenter <i class="fas fa-crosshairs"></i></div>
-        <div class="instruction">
-            <i class="fas fa-arrows-alt"></i> GLISSEZ POUR EXPLORER L'UNIVERS
+    <main id="view-site" class="view-layer active">
+        
+        <section id="home" class="section">
+            <h1 style="font-family:'Sacramento', cursive; font-size:4rem; color:var(--primary);">Dilara</h1>
+            <svg class="neon-heart" viewBox="0 0 512 512"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>
+            <p style="margin-top:20px; font-style:italic;">"Benim dünyam sensin."</p>
+        </section>
+
+        <section id="timer" class="section">
+            <h2>Zaman</h2>
+            <div class="glass-card">
+                <p style="color:#aaa; margin-bottom:15px;">13 Kasım 2024...</p>
+                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
+                    <div><div id="d">0</div><span style="font-size:0.6rem">GÜN</span></div>
+                    <div><div id="h">0</div><span style="font-size:0.6rem">SAAT</span></div>
+                    <div><div id="m">0</div><span style="font-size:0.6rem">DK</span></div>
+                    <div><div id="s">0</div><span style="font-size:0.6rem">SN</span></div>
+                </div>
+            </div>
+        </section>
+
+        <section id="album" class="section">
+            <h2>Polaroid Anıları 📸</h2>
+            <div class="glass-card" style="max-width:500px;">
+                <div class="photo-grid">
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p1.jpg')"></div>Biz</div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p2.jpg')"></div>Gülüşün</div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p3.jpg')"></div>Anı</div>
+                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p4.jpg')"></div>Aşk</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bank" class="section">
+            <h2>Aşk Bankosu 💝</h2>
+            <div class="glass-card">
+                <div class="bank-card">
+                    <div style="text-align:left; font-size:0.7rem; color:#888;">LOVE CARD</div>
+                    <div id="love-balance" class="bank-balance">1,000,000</div>
+                    <div style="text-align:right; font-size:0.7rem; color:#aaa;">POINTS</div>
+                </div>
+                <button class="action-btn" onclick="addLove()">💖 Puan Yatır</button>
+            </div>
+        </section>
+
+        <section id="video" class="section">
+            <h2>Video</h2>
+            <div class="glass-card">
+                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px;">
+                    <iframe src="https://www.youtube.com/embed/NHTrguAP2Vs" style="position:absolute; top:0; left:0; width:100%; height:100%;" frameborder="0" allowfullscreen></iframe>
+                </div>
+            </div>
+        </section>
+
+        <section id="playlist" class="section">
+            <h2>Müzik</h2>
+            <div class="glass-card">
+                <div class="track-row"><div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273573c72703272930260336203')"></div><div><b>Sadece Dilara</b><br><small>Mustafa</small></div></div>
+                <div class="track-row"><div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273c5598ba82b64df42d22b2729')"></div><div><b>Sonsuz Aşk</b><br><small>Bizimki</small></div></div>
+            </div>
+        </section>
+
+        <section id="letters" class="section">
+            <h2>Mektup Kutusu 💌</h2>
+            <div class="glass-card">
+                <div class="envelopes-grid">
+                    <div class="envelope" onclick="alert('Kıyamam sana... Ben hep buradayım. ❤️')">😢 Üzgünsen</div>
+                    <div class="envelope" onclick="alert('Kapat gözlerini, elini kalbine koy. Oradayım. 🤗')">🥰 Özlediysen</div>
+                    <div class="envelope" onclick="alert('Gülüşün benim dünyamı aydınlatıyor! ✨')">😊 Mutluysan</div>
+                    <div class="envelope" onclick="alert('Biz her şeyi aşarız. Elimi tut. 💪')">😨 Korkuyorsan</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="dates" class="section">
+            <h2>Özel Günler 🎂</h2>
+            <div class="glass-card" style="text-align:left;">
+                <div style="border-left:3px solid var(--primary); padding-left:15px; margin-bottom:20px;">
+                    <div style="color:var(--gold); font-weight:bold;">13 Kasım 2024</div><div>Tanışma ❤️</div>
+                </div>
+                <div style="border-left:3px solid #00e5ff; padding-left:15px;">
+                    <div style="color:#00e5ff; font-weight:bold;">04 Nisan 2026</div><div>Evlenme 👰🤵</div>
+                </div>
+            </div>
+        </section>
+
+        <section id="mood" class="section">
+            <h2>Ruh Hali 🌸</h2>
+            <div class="glass-card">
+                <p style="margin-bottom:15px;">Nasılsın?</p>
+                <div class="mood-grid">
+                    <div class="mood-btn" onclick="setMood('happy')">🥰</div>
+                    <div class="mood-btn" onclick="setMood('sad')">😢</div>
+                    <div class="mood-btn" onclick="setMood('tired')">😴</div>
+                    <div class="mood-btn" onclick="setMood('angry')">😤</div>
+                    <div class="mood-btn" onclick="setMood('love')">😍</div>
+                    <div class="mood-btn" onclick="setMood('sick')">🤒</div>
+                </div>
+                <p id="mood-resp" style="margin-top:20px; color:var(--gold); min-height:20px;"></p>
+            </div>
+        </section>
+
+        <section id="draw" class="section">
+            <h2>Birlikte Çiz 🎨</h2>
+            <div class="glass-card">
+                <canvas id="draw-canvas"></canvas>
+                <div class="colors-row">
+                    <div class="color-dot" style="background:red;" onclick="setColor('red')"></div>
+                    <div class="color-dot" style="background:blue;" onclick="setColor('blue')"></div>
+                    <div class="color-dot" style="background:white;" onclick="setColor('white')"></div>
+                    <button onclick="clearCanvas()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px;">Sil</button>
+                </div>
+                <p style="font-size:0.8rem; margin-top:10px; color:#888;">Bana bir kalp çiz ❤️</p>
+            </div>
+        </section>
+
+        <section id="travel" class="section">
+            <h2>Seyahat 🌍</h2>
+            <div class="glass-card" style="text-align:left;">
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🗼 Paris</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🇯🇵 Tokyo</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🇮🇹 Roma</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🏝️ Maldivler</div>
+            </div>
+        </section>
+
+        <section id="map" class="section">
+            <h2>Yerimiz</h2>
+            <div class="glass-card">
+                <div style="height:200px; background:#111; display:flex; justify-content:center; align-items:center;"><i class="fas fa-map-marker-alt" style="font-size:3rem; color:red;"></i></div>
+                <p style="margin-top:10px;">Parking Bérard, Valserhône</p>
+            </div>
+        </section>
+
+        <section id="bucket" class="section">
+            <h2>Hedefler</h2>
+            <div class="glass-card" style="text-align:left;">
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🌍 Dünya Turu</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 💍 Evlenme (2026)</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🎈 Kapadokya</div>
+                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🏠 Maison</div>
+            </div>
+        </section>
+
+        <section id="compliment" class="section">
+            <h2>Günlük İltifat 🌟</h2>
+            <div class="glass-card">
+                <p id="comp-text" style="font-style:italic; font-size:1.2rem; margin:20px 0;">"Sen bir harikasın."</p>
+                <button class="action-btn" onclick="newCompliment()">Yeni Söz</button>
+            </div>
+        </section>
+
+        <section id="emergency" class="section">
+            <h2>Acil Durum</h2>
+            <div class="glass-card">
+                <button class="action-btn" style="background:red;" onclick="window.location.href='https://wa.me/33600000000'">SOS</button>
+            </div>
+        </section>
+
+        <section id="countdown" class="section">
+            <h2>Düğün</h2>
+            <div class="glass-card">
+                <h1 id="wed-t" style="color:var(--primary);">...</h1>
+                <p>04.04.2026</p>
+            </div>
+        </section>
+
+        <section id="wall" class="section">
+            <h2>Duvar</h2>
+            <div class="glass-card" style="height:200px; overflow:hidden; position:relative;" id="wall-c"></div>
+        </section>
+
+    </main>
+
+    <div id="view-3d" class="view-layer">
+        <div id="canvas-container" style="width:100%; height:100%;"></div>
+        <div id="ui-3d">
+            <div id="header-3d" style="position:absolute; top:20px; width:100%; text-align:center; font-size:1.5rem;">MODE 3D</div>
+            <div id="status-3d" style="position:absolute; bottom:100px; width:100%; text-align:center;">En attente...</div>
+            <div id="pip-container" style="position:absolute; bottom:90px; right:20px; width:100px; height:133px; border:2px solid var(--primary); background:#000;"><canvas id="pip-canvas" style="width:100%; height:100%; transform:scaleX(-1);"></canvas></div>
+            <button id="btn-start-3d" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); padding:15px 30px; border-radius:30px;" onclick="init3DSystem()">BAŞLAT</button>
         </div>
     </div>
-
-    <div id="modal">
-        <div class="modal-card">
-            <div class="close-btn" onclick="closeModal()">✕</div>
-            <div id="modal-content"></div>
-        </div>
-    </div>
+    
+    <video id="webcam-video" playsinline muted></video>
 
     <script>
-        // === DONNÉES DE L'UNIVERS (LES 23 ONGLETS) ===
-        // Positionnés en spirale ou cercles concentriques
-        const nodes = [
-            // CENTRE
-            { id: 'home', x: 0, y: 0, label: 'DILARA', icon: '❤️', size: 50, color: '#ff0a43' },
-            
-            // CERCLE 1 (Les essentiels)
-            { id: 'timer', x: 0, y: -180, label: 'Zaman', icon: '⏳', size: 30, color: '#ffd700' },
-            { id: 'album', x: 160, y: -80, label: 'Albüm', icon: '📸', size: 30, color: '#00e5ff' },
-            { id: 'music', x: 160, y: 80, label: 'Müzik', icon: '🎵', size: 30, color: '#bd00ff' },
-            { id: 'map', x: 0, y: 180, label: 'Yerimiz', icon: '📍', size: 30, color: '#ff4757' },
-            { id: 'video', x: -160, y: 80, label: 'Video', icon: '🎬', size: 30, color: '#ff6b81' },
-            { id: 'letters', x: -160, y: -80, label: 'Mektup', icon: '💌', size: 30, color: '#ffa502' },
-
-            // CERCLE 2 (Les activités)
-            { id: 'quiz', x: 0, y: -350, label: 'Quiz', icon: '❓', size: 25, color: '#fff' },
-            { id: 'date', x: 250, y: -250, label: 'Date Idea', icon: '🎲', size: 25, color: '#fff' },
-            { id: 'pet', x: 350, y: 0, label: 'Panda', icon: '🐼', size: 25, color: '#fff' },
-            { id: 'mood', x: 250, y: 250, label: 'Mood', icon: '🎭', size: 25, color: '#fff' },
-            { id: 'draw', x: 0, y: 350, label: 'Çiz', icon: '🎨', size: 25, color: '#fff' },
-            { id: 'bank', x: -250, y: 250, label: 'Banko', icon: '🏦', size: 25, color: '#fff' },
-            { id: 'wall', x: -350, y: 0, label: 'Duvar', icon: '💬', size: 25, color: '#fff' },
-            { id: 'bucket', x: -250, y: -250, label: 'Hedefler', icon: '📝', size: 25, color: '#fff' },
-
-            // CERCLE 3 (Les utilitaires/Extras)
-            { id: 'affirmation', x: 150, y: -450, label: 'Günlük', icon: '✨', size: 20, color: '#aaa' },
-            { id: 'astro', x: 450, y: -150, label: 'Burç', icon: '🌟', size: 20, color: '#aaa' },
-            { id: 'travel', x: 450, y: 150, label: 'Seyahat', icon: '✈️', size: 20, color: '#aaa' },
-            { id: 'emergency', x: 150, y: 450, label: 'Acil', icon: '🚨', size: 20, color: '#aaa' },
-            { id: 'countdown', x: -150, y: 450, label: 'Düğün', icon: '💍', size: 20, color: '#aaa' },
-            { id: 'weather', x: -450, y: 150, label: 'Hava', icon: '☀️', size: 20, color: '#aaa' },
-            { id: 'secret', x: -450, y: -150, label: 'Gizli', icon: '🔐', size: 20, color: '#aaa' }
-        ];
-
-        // === MOTEUR GRAPHIQUE ===
-        const canvas = document.getElementById('universe');
-        const ctx = canvas.getContext('2d');
-        let width, height, offsetX, offsetY;
-        let isDragging = false, startX, startY;
-        let stars = [];
-        let globalInterval = null; // Pour gérer les timers dans les modales
-
-        function init() {
-            width = window.innerWidth;
-            height = window.innerHeight;
-            canvas.width = width;
-            canvas.height = height;
-            resetCamera();
-            // Etoiles fond
-            stars = [];
-            for(let i=0; i<400; i++) stars.push({x: Math.random()*3000-1500, y: Math.random()*3000-1500, s: Math.random()*2, a: Math.random()});
-        }
-
-        function resetCamera() {
-            offsetX = width / 2;
-            offsetY = height / 2;
-        }
-
-        function loop() {
-            ctx.fillStyle = '#050510';
-            ctx.fillRect(0, 0, width, height);
-
-            // Stars
-            ctx.fillStyle = 'white';
-            stars.forEach(s => {
-                const x = s.x + offsetX * 0.2; // Parallax
-                const y = s.y + offsetY * 0.2;
-                // Infinite tiling logic simplified
-                const dx = (x % 3000 + 3000) % 3000 - 500;
-                const dy = (y % 3000 + 3000) % 3000 - 500;
-                ctx.globalAlpha = s.a;
-                ctx.beginPath(); ctx.arc(dx, dy, s.s, 0, Math.PI*2); ctx.fill();
-            });
-
-            // Links
-            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            nodes.forEach(n => {
-                if (n.id === 'home') return;
-                ctx.moveTo(offsetX, offsetY); // Home is always relative 0,0
-                ctx.lineTo(n.x + offsetX, n.y + offsetY);
-            });
-            ctx.stroke();
-
-            // Nodes
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            nodes.forEach(n => {
-                const x = n.x + offsetX;
-                const y = n.y + offsetY;
-                
-                // Glow
-                const g = ctx.createRadialGradient(x, y, 0, x, y, n.size*2);
-                g.addColorStop(0, n.color); g.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = g; ctx.globalAlpha = 0.3;
-                ctx.beginPath(); ctx.arc(x, y, n.size*2, 0, Math.PI*2); ctx.fill();
-
-                // Body
-                ctx.globalAlpha = 1;
-                ctx.fillStyle = '#1a1a2e';
-                ctx.strokeStyle = n.color;
-                ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(x, y, n.size, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-
-                // Icon & Text
-                ctx.fillStyle = 'white';
-                ctx.font = `${n.size}px Arial`;
-                ctx.fillText(n.icon, x, y);
-                ctx.font = '10px Montserrat';
-                ctx.fillStyle = '#ccc';
-                ctx.fillText(n.label, x, y + n.size + 15);
-            });
-
-            requestAnimationFrame(loop);
-        }
-
-        // === DRAG & CLICK LOGIC ===
-        canvas.addEventListener('mousedown', e => { isDragging=true; startX=e.clientX-offsetX; startY=e.clientY-offsetY; });
-        canvas.addEventListener('mousemove', e => { if(isDragging){ offsetX=e.clientX-startX; offsetY=e.clientY-startY; }});
-        canvas.addEventListener('mouseup', () => isDragging=false);
+        // === SITE JS ===
+        const startT = new Date('2024-11-13T00:00:00').getTime();
+        const wedT = new Date('2026-04-04T00:00:00').getTime();
         
-        canvas.addEventListener('touchstart', e => { isDragging=true; startX=e.touches[0].clientX-offsetX; startY=e.touches[0].clientY-offsetY; });
-        canvas.addEventListener('touchmove', e => { if(isDragging){ e.preventDefault(); offsetX=e.touches[0].clientX-startX; offsetY=e.touches[0].clientY-startY; } }, {passive:false});
-        canvas.addEventListener('touchend', () => isDragging=false);
-
-        canvas.addEventListener('click', e => {
-            if (Math.abs(e.clientX - (startX + offsetX)) > 5) return; // Prevent click on drag
-            nodes.forEach(n => {
-                const dx = e.clientX - (n.x + offsetX);
-                const dy = e.clientY - (n.y + offsetY);
-                if (Math.sqrt(dx*dx + dy*dy) < n.size + 10) openModal(n.id);
-            });
-        });
-
-        // === MODAL CONTENT MANAGER ===
-        function openModal(id) {
-            const modal = document.getElementById('modal');
-            const content = document.getElementById('modal-content');
-            clearInterval(globalInterval); // Clean previous intervals
-
-            let html = '';
+        setInterval(() => {
+            const now = new Date().getTime();
+            const d = now - startT;
+            document.getElementById('d').innerText = Math.floor(d/(1000*60*60*24));
+            document.getElementById('h').innerText = Math.floor((d%(1000*60*60*24))/(1000*60*60));
+            document.getElementById('m').innerText = Math.floor((d%(1000*60*60))/(1000*60));
+            document.getElementById('s').innerText = Math.floor((d%(1000*60))/1000);
             
-            // --- GENERATION DU CONTENU ---
-            if (id === 'home') {
-                html = `<h2>Dilara</h2><p>"Tu es le centre de mon univers."</p><div style="font-size:4rem; margin:20px 0;">❤️</div>`;
-            }
-            else if (id === 'timer') {
-                html = `<h2>Geçen Zaman</h2><div class="timer-grid">
-                        <div class="t-box"><div id="d">0</div><div>Jour</div></div>
-                        <div class="t-box"><div id="h">0</div><div>Heure</div></div>
-                        <div class="t-box"><div id="m">0</div><div>Min</div></div>
-                        <div class="t-box"><div id="s">0</div><div>Sec</div></div>
-                        </div>`;
-                const start = new Date('2024-11-13T00:00:00').getTime();
-                globalInterval = setInterval(() => {
-                    const diff = new Date().getTime() - start;
-                    if(document.getElementById('d')) {
-                        document.getElementById('d').innerText = Math.floor(diff/(1000*60*60*24));
-                        document.getElementById('h').innerText = Math.floor((diff%(1000*60*60*24))/(1000*60*60));
-                        document.getElementById('m').innerText = Math.floor((diff%(1000*60*60))/(1000*60));
-                        document.getElementById('s').innerText = Math.floor((diff%(1000*60))/1000);
-                    }
-                }, 1000);
-            }
-            else if (id === 'album') {
-                html = `<h2>Albüm</h2><div class="photo-grid">
-                    <div class="p-img" style="background-image:url('p1.jpg')"></div>
-                    <div class="p-img" style="background-image:url('p2.jpg')"></div>
-                    <div class="p-img" style="background-image:url('p3.jpg')"></div>
-                    <div class="p-img" style="background-image:url('p4.jpg')"></div>
-                </div>`;
-            }
-            else if (id === 'video') {
-                html = `<h2>Video</h2><div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px;">
-                <iframe src="https://www.youtube.com/embed/NHTrguAP2Vs" style="position:absolute; top:0; left:0; width:100%; height:100%;" frameborder="0"></iframe></div>`;
-            }
-            else if (id === 'music') {
-                html = `<h2>Müzik</h2><div style="text-align:left; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px; margin-bottom:10px;">
-                <b>Sadece Dilara</b><br><span style="color:#aaa">Mustafa</span></div>
-                <div style="text-align:left; background:rgba(255,255,255,0.05); padding:15px; border-radius:10px;">
-                <b>Sonsuz Aşk</b><br><span style="color:#aaa">Bizimki</span></div>`;
-            }
-            else if (id === 'map') {
-                html = `<h2>Yerimiz</h2><div style="height:150px; background:#333; display:flex; justify-content:center; align-items:center; border-radius:10px;"><i class="fas fa-map-marker-alt" style="font-size:3rem; color:#ff4757;"></i></div>
-                <p style="margin-top:15px;">Parking Bérard, Valserhône</p>`;
-            }
-            else if (id === 'bucket') {
-                html = `<h2>Hedefler</h2>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')">🌍 Tour du monde</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')">💍 Mariage (2026)</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')">🎈 Cappadoce</div>`;
-            }
-            else if (id === 'letters') {
-                html = `<h2>Mektup</h2><div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <button class="btn" style="margin:0; font-size:0.8rem;" onclick="alert('Je suis là pour toi ❤️')">Triste 😢</button>
-                <button class="btn" style="margin:0; font-size:0.8rem;" onclick="alert('Tu es mon soleil ☀️')">Heureuse 😊</button></div>`;
-            }
-            else if (id === 'date') {
-                html = `<h2>Date Idea</h2><div id="d-res" style="font-size:1.5rem; margin:20px 0;">???</div><button class="btn" onclick="genDate()">Générer</button>`;
-            }
-            else if (id === 'quiz') {
-                html = `<h2>Quiz</h2><p>Qui est le plus jaloux ?</p>
-                <button class="btn" onclick="alert('Oui c\'est moi 😅')">Mustafa</button>
-                <button class="btn" onclick="alert('Pas vraiment...')">Dilara</button>`;
-            }
-            else if (id === 'pet') {
-                html = `<h2>Panda</h2><div style="font-size:5rem;" id="p-icon" onclick="feed()">🐼</div><p>Besle beni!</p>
-                <div style="width:100%; height:10px; background:#333; margin-top:10px;"><div id="p-bar" style="width:50%; height:100%; background:green;"></div></div>`;
-            }
-            else if (id === 'draw') {
-                html = `<h2>Çiz</h2><canvas id="d-c" style="background:white; width:100%; height:250px; border-radius:10px;"></canvas><button class="btn" onclick="clearD()">Clear</button>`;
-            }
-            else if (id === 'bank') {
-                html = `<h2>Banko</h2><h1 id="b-val" style="color:gold;">1,000,000</h1><button class="btn" onclick="addM()">$$$</button>`;
-            }
-            else if (id === 'wall') {
-                html = `<h2>Duvar</h2><div class="wall-container" id="w-c"></div>`;
-            }
-            else if (id === 'countdown') {
-                html = `<h2>Düğün</h2><h1 id="w-t" style="color:#ff0a43;">...</h1><p>04.04.2026</p>`;
-                const wed = new Date('2026-04-04').getTime();
-                globalInterval = setInterval(() => {
-                    const l = Math.floor((wed - new Date().getTime()) / (1000*60*60*24));
-                    if(document.getElementById('w-t')) document.getElementById('w-t').innerText = l + " Jours";
-                }, 1000);
-            }
-            else if (id === 'secret') {
-                html = `<h2>Gizli</h2><input type="password" id="s-in" style="width:100%; padding:10px; border-radius:5px; border:none; text-align:center;" placeholder="Code..."><button class="btn" onclick="checkS()">OK</button>`;
-            }
-            else {
-                html = `<h2>${id}</h2><p>Contenu bientôt disponible...</p>`;
-            }
+            const w = Math.floor((wedT - now)/(1000*60*60*24));
+            document.getElementById('wed-t').innerText = w + " Jours";
+        }, 1000);
 
-            content.innerHTML = html;
-            modal.classList.add('active');
+        // Features
+        let bal = 1000000; function addLove() { bal+=1000; document.getElementById('love-balance').innerText = bal.toLocaleString(); }
+        function setMood(m) { const r = {happy:"Harika!", sad:"Kıyamam...", tired:"Dinlen", angry:"Sakin ol", love:"Ben de seni", sick:"Geçmiş olsun"}; document.getElementById('mood-resp').innerText = r[m]; }
+        const c = ["Gözlerin yıldızlar gibi.", "Seninle her an hediye.", "Dünyanın en güzeli.", "Mucizemsin."];
+        function newCompliment() { document.getElementById('comp-text').innerText = '"'+c[Math.floor(Math.random()*c.length)]+'"'; }
 
-            // Post-render Logic (Canvas, Wall, etc.)
-            if(id === 'draw') setupDraw();
-            if(id === 'wall') setupWall();
+        // Wall
+        const wc = document.getElementById('wall-c');
+        const txts = ["Seni Seviyorum", "Love", "Aşk"];
+        for(let i=0; i<10; i++) {
+            let el = document.createElement('div'); el.innerText=txts[Math.floor(Math.random()*txts.length)];
+            el.style.position='absolute'; el.style.left=Math.random()*80+'%'; el.style.top=Math.random()*80+'%'; el.style.opacity='0.5';
+            wc.appendChild(el);
         }
 
-        function closeModal() {
-            document.getElementById('modal').classList.remove('active');
-            clearInterval(globalInterval);
-        }
-
-        // === FONCTIONS LOGIQUES ===
-        function genDate() { const d=["Sushi","Ciné","Balade"]; document.getElementById('d-res').innerText = d[Math.floor(Math.random()*d.length)]; }
-        let pHealth=50; function feed(){ pHealth=Math.min(100,pHealth+10); document.getElementById('p-bar').style.width=pHealth+'%'; document.getElementById('p-icon').style.transform='scale(1.2)'; setTimeout(()=>document.getElementById('p-icon').style.transform='scale(1)',200); }
-        let money=1000000; function addM(){ money+=500; document.getElementById('b-val').innerText=money.toLocaleString(); }
-        function checkS(){ if(document.getElementById('s-in').value==='131124') alert('Je t\'aime ❤️'); else alert('Non!'); }
-        
-        function setupWall() {
-            const c = document.getElementById('w-c');
-            const txts = ["Seni Seviyorum", "I Love You", "Je t'aime"];
-            for(let i=0; i<10; i++) {
-                let d = document.createElement('div'); d.className='floating-text';
-                d.innerText = txts[Math.floor(Math.random()*txts.length)];
-                d.style.left = Math.random()*80+'%';
-                d.style.animationDuration = (Math.random()*5+5)+'s';
-                d.style.color = 'white';
-                c.appendChild(d);
-            }
-        }
-
-        function setupDraw() {
-            const cvs = document.getElementById('d-c');
-            const cx = cvs.getContext('2d');
+        // Draw
+        setTimeout(()=>{
+            const cvs = document.getElementById('draw-canvas'); const ctx = cvs.getContext('2d');
             cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
-            cx.lineWidth=3; cx.strokeStyle='red'; cx.lineCap='round';
+            ctx.lineWidth=3; ctx.strokeStyle='red';
             let paint=false;
             function draw(e){
                 if(!paint)return; e.preventDefault();
-                const rect=cvs.getBoundingClientRect();
-                const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left;
-                const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top;
-                cx.lineTo(x,y); cx.stroke(); cx.beginPath(); cx.moveTo(x,y);
+                const r=cvs.getBoundingClientRect();
+                const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+                const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
+                ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);
             }
             cvs.addEventListener('mousedown', ()=>{paint=true}); cvs.addEventListener('touchstart', ()=>{paint=true});
-            cvs.addEventListener('mouseup', ()=>{paint=false;cx.beginPath()}); cvs.addEventListener('touchend', ()=>{paint=false;cx.beginPath()});
+            cvs.addEventListener('mouseup', ()=>{paint=false;ctx.beginPath()}); cvs.addEventListener('touchend', ()=>{paint=false;ctx.beginPath()});
             cvs.addEventListener('mousemove', draw); cvs.addEventListener('touchmove', draw);
-            window.clearD = function(){ cx.clearRect(0,0,cvs.width,cvs.height); }
+        },1000);
+
+        // Nav
+        function goSite(id) {
+            document.getElementById('view-3d').classList.remove('active');
+            document.getElementById('view-site').classList.add('active');
+            document.getElementById(id).scrollIntoView({behavior:'smooth'});
+            upNav(id);
+        }
+        function goMode(mode) {
+            document.getElementById('view-site').classList.remove('active');
+            document.getElementById('view-3d').classList.add('active');
+            document.getElementById('btn-start-3d').style.display='block';
+            upNav(mode);
+            currentMode = mode;
+        }
+        function upNav(id) { document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active'); if(e.onclick.toString().includes(id)) e.classList.add('active');}); }
+
+        // === 3D LOGIC ===
+        const PHOTO_URL='photo.jpg'; let currentMode='reactor', scene, camera, renderer, particles;
+        let is3DInitialized = false;
+
+        function init3DSystem() {
+            document.getElementById('btn-start-3d').style.display='none';
+            const c=document.getElementById('canvas-container'); c.innerHTML='';
+            scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x000000,0.003);
+            camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000); camera.position.z=100;
+            renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+            renderer.setSize(window.innerWidth,window.innerHeight);
+            c.appendChild(renderer.domElement);
+            
+            if(currentMode==='reactor') setupReactor(); else loadHolo();
+            animate(); startCam();
+            is3DInitialized = true;
         }
 
-        window.addEventListener('resize', init);
-        init();
-        loop();
+        function setupReactor() {
+            const geo=new THREE.BufferGeometry(); const pos=[]; const col=[];
+            for(let i=0;i<5000;i++){
+                const t=Math.random()*Math.PI*2; const d=Math.sqrt(Math.random());
+                let x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t), z=(Math.random()-0.5)*10;
+                pos.push(x*3*d, y*3*d, z*3*d); col.push(1,0,0.2);
+            }
+            geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+            geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+            const mat=new THREE.PointsMaterial({size:2, vertexColors:true, blending:THREE.AdditiveBlending, transparent:true});
+            particles=new THREE.Points(geo,mat); scene.add(particles);
+        }
+
+        function loadHolo() {
+            const i=new Image(); i.src=PHOTO_URL;
+            i.onload=()=>{
+                const cv=document.createElement('canvas'); const x=cv.getContext('2d');
+                cv.width=200; cv.height=200; x.drawImage(i,0,0,200,200);
+                const d=x.getImageData(0,0,200,200).data;
+                const geo=new THREE.BufferGeometry(); const pos=[]; const col=[];
+                for(let y=0;y<200;y+=2){
+                    for(let x=0;x<200;x+=2){
+                        const k=(y*200+x)*4;
+                        if(d[k+3]>50){
+                            pos.push((x-100)*0.8, (100-y)*0.8, 0);
+                            col.push(d[k]/255, d[k+1]/255, d[k+2]/255);
+                        }
+                    }
+                }
+                geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
+                geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+                const mat=new THREE.PointsMaterial({size:1.5, vertexColors:true});
+                particles=new THREE.Points(geo,mat); scene.add(particles);
+            };
+        }
+
+        function animate(){ requestAnimationFrame(animate); if(particles) particles.rotation.y+=0.005; renderer.render(scene,camera); }
+
+        function startCam(){
+            const v=document.getElementById('webcam-video');
+            const cv=document.getElementById('pip-canvas'); const cx=cv.getContext('2d');
+            const hands=new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
+            hands.setOptions({maxNumHands:1, minDetectionConfidence:0.5});
+            hands.onResults((res)=>{
+                cx.clearRect(0,0,cv.width,cv.height); cx.drawImage(res.image,0,0,cv.width,cv.height);
+                const s=document.getElementById('status-3d');
+                if(res.multiHandLandmarks.length>0) {
+                    s.innerText="DETECTÉ !"; s.style.color="#0f0";
+                    if(particles) particles.scale.setScalar(1.5);
+                } else {
+                    s.innerText="Montre ta main..."; s.style.color="#fff";
+                    if(particles) particles.scale.setScalar(1);
+                }
+            });
+            const cam=new Camera(v,{onFrame:async()=>{await hands.send({image:v})},width:320,height:240});
+            cam.start();
+        }
+
+        window.addEventListener('resize', ()=>{ if(camera){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);} });
     </script>
 </body>
 </html>
