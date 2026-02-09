@@ -1,81 +1,500 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sadece Dilara | Ultimate Edition ❤️</title>
+    <meta name="theme-color" content="#ff0a43">
+    <title>Pour Dilara ❤️</title>
     
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Sacramento&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/control_utils/control_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
     
     <style>
-        /* --- CORE STYLES --- */
-        :root { --primary: #ff0a43; --gold: #ffd700; --bg: #050505; --glass: rgba(20, 20, 20, 0.9); }
-        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-        body { font-family: 'Montserrat', sans-serif; color: white; background: var(--bg); overflow: hidden; height: 100vh; width: 100vw; }
+        /* --- VARIABLES & RESET --- */
+        :root { 
+            --primary: #ff0a43; 
+            --secondary: #ff5778;
+            --gold: #ffd700; 
+            --bg: #0a0000; 
+            --glass: rgba(30, 10, 15, 0.85);
+            --text-light: #e0e0e0;
+            --shadow: 0 8px 32px rgba(255, 10, 67, 0.15);
+        }
+        
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            -webkit-tap-highlight-color: transparent; 
+        }
+        
+        body { 
+            font-family: 'Montserrat', sans-serif; 
+            color: var(--text-light); 
+            background: linear-gradient(135deg, #1a0000 0%, #000000 50%, #0d0015 100%);
+            background-attachment: fixed;
+            overflow: hidden; 
+            height: 100vh; 
+            width: 100vw;
+            position: relative;
+        }
+
+        /* --- ANIMATED BACKGROUND HEARTS --- */
+        .bg-hearts {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0.08;
+        }
+        
+        .floating-heart {
+            position: absolute;
+            font-size: 20px;
+            animation: float 15s infinite ease-in-out;
+            opacity: 0.6;
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-100px) rotate(360deg); opacity: 0; }
+        }
 
         /* --- VIEW MANAGEMENT --- */
-        .view-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.5s ease, transform 0.5s ease; opacity: 0; pointer-events: none; z-index: 0; transform: scale(0.95); }
-        .view-layer.active { opacity: 1; pointer-events: auto; z-index: 5; transform: scale(1); }
+        .view-layer { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1); 
+            opacity: 0; 
+            pointer-events: none; 
+            z-index: 1; 
+            transform: scale(0.95); 
+        }
         
-        #view-site { background: radial-gradient(circle at center, #1a0000 0%, #000000 90%); overflow-y: scroll; scroll-snap-type: y mandatory; scroll-behavior: smooth; padding-bottom: 100px; }
-        #view-3d { background: black; overflow: hidden; }
+        .view-layer.active { 
+            opacity: 1; 
+            pointer-events: auto; 
+            z-index: 5; 
+            transform: scale(1); 
+        }
+        
+        #view-site { 
+            overflow-y: auto; 
+            overflow-x: hidden;
+            scroll-snap-type: y mandatory; 
+            scroll-behavior: smooth; 
+            padding-bottom: 100px;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #view-3d { 
+            background: black; 
+            overflow: hidden; 
+        }
 
-        /* --- NAVIGATION --- */
-        #navbar { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 95%; max-width: 600px; height: 75px; background: rgba(10, 10, 10, 0.95); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 25px; display: flex; align-items: center; z-index: 1000; padding: 0 10px; overflow-x: auto; gap: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); }
-        #navbar::-webkit-scrollbar { display: none; }
-        .nav-item { color: #666; font-size: 1.2rem; cursor: pointer; transition: 0.3s; display: flex; flex-direction: column; align-items: center; min-width: 60px; flex-shrink: 0; }
-        .nav-item span { font-size: 0.5rem; margin-top: 4px; font-weight: 700; white-space: nowrap; text-transform: uppercase; }
-        .nav-item.active { color: var(--gold); transform: translateY(-2px); }
-        .nav-item.active i { text-shadow: 0 0 10px var(--gold); }
+        /* --- NAVIGATION BAR (Optimisée tactile) --- */
+        #navbar { 
+            position: fixed; 
+            bottom: 15px; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 96%; 
+            max-width: 650px; 
+            height: 70px; 
+            background: rgba(15, 5, 10, 0.95); 
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 215, 0, 0.15); 
+            border-radius: 35px; 
+            display: flex; 
+            align-items: center; 
+            z-index: 1000; 
+            padding: 0 8px; 
+            overflow-x: auto; 
+            overflow-y: hidden;
+            gap: 5px; 
+            box-shadow: 0 10px 40px rgba(255, 10, 67, 0.3), 0 0 60px rgba(255, 10, 67, 0.1);
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        #navbar::-webkit-scrollbar { 
+            display: none; 
+        }
+        
+        .nav-item { 
+            color: #666; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
+            min-width: 65px; 
+            height: 54px;
+            flex-shrink: 0;
+            border-radius: 18px;
+            padding: 8px;
+            position: relative;
+        }
+        
+        .nav-item span { 
+            font-size: 0.5rem; 
+            margin-top: 3px; 
+            font-weight: 600; 
+            white-space: nowrap; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px;
+        }
+        
+        .nav-item.active { 
+            color: var(--gold); 
+            background: rgba(255, 215, 0, 0.1);
+            transform: translateY(-2px); 
+        }
+        
+        .nav-item.active i { 
+            text-shadow: 0 0 15px var(--gold), 0 0 25px rgba(255, 215, 0, 0.5); 
+            transform: scale(1.15);
+        }
+        
+        /* Touch feedback */
+        .nav-item:active {
+            transform: scale(0.95);
+        }
 
         /* --- SECTIONS --- */
-        .section { min-height: 100vh; width: 100%; scroll-snap-align: start; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 40px 20px; }
-        h2 { font-family: 'Sacramento', cursive; font-size: 2.5rem; color: var(--gold); margin-bottom: 20px; text-align: center; }
-        .glass-card { background: var(--glass); border: 1px solid rgba(255,215,0,0.1); border-radius: 20px; padding: 20px; width: 100%; max-width: 450px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-
-        /* --- MODULE STYLES --- */
-        .photo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .photo-frame { background: white; padding: 6px 6px 25px 6px; transform: rotate(-2deg); transition: 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.5); cursor: pointer; color: #333; font-size: 0.7rem; font-weight: bold; }
-        .photo-frame:nth-child(even) { transform: rotate(2deg); }
-        .photo-frame:hover { transform: scale(1.1) rotate(0deg); z-index: 10; }
-        .photo-img { width: 100%; height: 120px; background-size: cover; background-position: center; border: 1px solid #eee; margin-bottom: 5px; }
-
-        .bank-card { background: linear-gradient(135deg, #1a1a1a, #000); border-radius: 15px; padding: 20px; border: 1px solid #333; position: relative; overflow: hidden; margin-bottom: 15px; }
-        .bank-balance { font-size: 2.5rem; font-weight: 800; color: var(--gold); margin: 15px 0; font-family: monospace; text-shadow: 0 0 10px rgba(255,215,0,0.3); }
-
-        #draw-canvas { background: white; border-radius: 10px; width: 100%; height: 250px; cursor: crosshair; touch-action: none; }
-        .colors-row { display: flex; justify-content: center; gap: 10px; margin-top: 10px; }
-        .color-dot { width: 25px; height: 25px; border-radius: 50%; cursor: pointer; border: 2px solid white; }
-
-        .mood-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .mood-btn { font-size: 2rem; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 10px; cursor: pointer; border: 1px solid transparent; transition: 0.2s; }
-        .mood-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--gold); transform: scale(1.1); }
-
-        .bucket-item { text-align: left; padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); cursor: pointer; display: flex; align-items: center; gap: 10px; }
-        .bucket-item.checked { text-decoration: line-through; color: #666; }
-        .bucket-check { width: 18px; height: 18px; border: 1px solid white; border-radius: 50%; }
-        .bucket-item.checked .bucket-check { background: var(--primary); border-color: var(--primary); }
-
-        .track-row { display: flex; align-items: center; padding: 10px; border-bottom: 1px solid #333; text-align: left; }
-        .track-img { width: 50px; height: 50px; border-radius: 8px; margin-right: 15px; background-size: cover; }
-        .envelopes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .envelope { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; cursor: pointer; border: 1px dashed #555; transition: 0.3s; }
+        .section { 
+            min-height: 100vh; 
+            width: 100%; 
+            scroll-snap-align: start; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: center; 
+            align-items: center; 
+            padding: 60px 20px 40px; 
+            position: relative;
+        }
         
-        /* --- NOUVEAU STYLE: MINIATURE 3D (TILT) --- */
+        h2 { 
+            font-family: 'Sacramento', cursive; 
+            font-size: 2.8rem; 
+            color: var(--gold); 
+            margin-bottom: 25px; 
+            text-align: center; 
+            text-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .glass-card { 
+            background: var(--glass); 
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,215,0,0.15); 
+            border-radius: 25px; 
+            padding: 25px; 
+            width: 100%; 
+            max-width: 450px; 
+            text-align: center; 
+            box-shadow: var(--shadow), 0 0 0 1px rgba(255, 215, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(255, 10, 67, 0.25);
+        }
+
+        /* --- HOME SECTION --- */
+        #home h1 {
+            font-family: 'Sacramento', cursive; 
+            font-size: 5rem; 
+            color: var(--primary);
+            text-shadow: 0 0 30px rgba(255, 10, 67, 0.6), 0 0 60px rgba(255, 10, 67, 0.3);
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+        
+        .neon-heart { 
+            width: 180px; 
+            fill: var(--primary); 
+            filter: drop-shadow(0 0 20px var(--primary)) drop-shadow(0 0 40px rgba(255, 10, 67, 0.4));
+            animation: heartbeat 1.5s infinite;
+        }
+        
+        @keyframes heartbeat { 
+            0%, 100% { transform: scale(1); } 
+            10%, 30% { transform: scale(1.1); }
+            20%, 40% { transform: scale(1.05); }
+        }
+
+        /* --- PHOTO GRID (Optimisée tactile) --- */
+        .photo-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 18px; 
+        }
+        
+        .photo-frame { 
+            background: linear-gradient(to bottom, #fefefe, #f5f5f5); 
+            padding: 8px 8px 30px 8px; 
+            transform: rotate(-2deg); 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4); 
+            cursor: pointer; 
+            color: #333; 
+            font-size: 0.75rem; 
+            font-weight: 700;
+            position: relative;
+        }
+        
+        .photo-frame:nth-child(even) { 
+            transform: rotate(2deg); 
+        }
+        
+        .photo-frame:active { 
+            transform: scale(1.05) rotate(0deg); 
+            z-index: 10; 
+            box-shadow: 0 15px 40px rgba(255, 10, 67, 0.4);
+        }
+        
+        .photo-img { 
+            width: 100%; 
+            aspect-ratio: 1;
+            background-size: cover; 
+            background-position: center; 
+            border: 2px solid #eee; 
+            margin-bottom: 8px;
+            border-radius: 3px;
+        }
+
+        /* --- BANK CARD --- */
+        .bank-card { 
+            background: linear-gradient(135deg, #2a1a1a 0%, #0a0000 100%); 
+            border-radius: 20px; 
+            padding: 25px; 
+            border: 1px solid rgba(255, 215, 0, 0.2); 
+            position: relative; 
+            overflow: hidden; 
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        .bank-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 60%);
+            animation: shimmer 3s infinite;
+        }
+        
+        @keyframes shimmer {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20%, -20%); }
+        }
+        
+        .bank-balance { 
+            font-size: 3rem; 
+            font-weight: 900; 
+            color: var(--gold); 
+            margin: 20px 0; 
+            font-family: 'Courier New', monospace; 
+            text-shadow: 0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* --- DRAWING CANVAS --- */
+        #draw-canvas { 
+            background: white; 
+            border-radius: 15px; 
+            width: 100%; 
+            height: 280px; 
+            cursor: crosshair; 
+            touch-action: none;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .colors-row { 
+            display: flex; 
+            justify-content: center; 
+            gap: 12px; 
+            margin-top: 15px;
+            align-items: center;
+        }
+        
+        .color-dot { 
+            width: 40px; 
+            height: 40px; 
+            border-radius: 50%; 
+            cursor: pointer; 
+            border: 3px solid rgba(255,255,255,0.3); 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        
+        .color-dot:active {
+            transform: scale(1.2);
+            border-color: white;
+        }
+
+        /* --- MOOD GRID (Optimisée tactile) --- */
+        .mood-grid { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 12px; 
+        }
+        
+        .mood-btn { 
+            font-size: 2.5rem; 
+            background: rgba(255,255,255,0.05); 
+            padding: 20px; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            border: 2px solid transparent; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .mood-btn:active { 
+            background: rgba(255,255,255,0.2); 
+            border-color: var(--gold); 
+            transform: scale(1.1); 
+        }
+
+        /* --- BUCKET & TRAVEL ITEMS --- */
+        .bucket-item { 
+            text-align: left; 
+            padding: 18px; 
+            border-bottom: 1px solid rgba(255,255,255,0.08); 
+            cursor: pointer; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px;
+            transition: background 0.3s ease;
+            font-size: 0.95rem;
+            min-height: 60px;
+        }
+        
+        .bucket-item:active {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .bucket-item.checked { 
+            text-decoration: line-through; 
+            color: #666; 
+        }
+        
+        .bucket-check { 
+            width: 24px; 
+            height: 24px; 
+            border: 2px solid rgba(255, 215, 0, 0.6); 
+            border-radius: 50%;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .bucket-item.checked .bucket-check { 
+            background: var(--primary); 
+            border-color: var(--primary); 
+            box-shadow: 0 0 10px var(--primary);
+        }
+        
+        .bucket-item.checked .bucket-check::after {
+            content: '✓';
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+        }
+
+        /* --- MUSIC TRACKS --- */
+        .track-row { 
+            display: flex; 
+            align-items: center; 
+            padding: 15px; 
+            border-bottom: 1px solid rgba(255,255,255,0.08); 
+            text-align: left;
+            transition: background 0.3s ease;
+            border-radius: 10px;
+            margin-bottom: 5px;
+        }
+        
+        .track-row:active {
+            background: rgba(255, 215, 0, 0.1);
+        }
+        
+        .track-img { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 12px; 
+            margin-right: 15px; 
+            background-size: cover;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            flex-shrink: 0;
+        }
+
+        /* --- ENVELOPES --- */
+        .envelopes-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 12px; 
+        }
+        
+        .envelope { 
+            background: rgba(255,255,255,0.05); 
+            padding: 20px 15px; 
+            border-radius: 15px; 
+            cursor: pointer; 
+            border: 2px dashed rgba(255, 215, 0, 0.3); 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .envelope:active {
+            transform: scale(1.05);
+            border-color: var(--gold);
+            background: rgba(255,215,0,0.1);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+        
+        /* --- 3D MODEL CARD --- */
         .model-wrapper {
             position: relative;
-            width: 300px;
-            height: 400px;
-            border-radius: 20px;
-            background: #000;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5), 0 0 0 2px rgba(255, 215, 0, 0.3);
+            width: 100%;
+            max-width: 350px;
+            aspect-ratio: 3/4;
+            border-radius: 25px;
+            background: linear-gradient(135deg, #1a0000, #000);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 0 2px rgba(255, 215, 0, 0.3);
             transform-style: preserve-3d;
             transform: perspective(1000px);
             transition: transform 0.1s ease-out;
@@ -83,418 +502,871 @@
             overflow: hidden;
             margin: 0 auto;
         }
-        .model-img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; transform: translateZ(20px); }
-        .model-glass { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%); z-index: 2; border-radius: 20px; pointer-events: none; opacity: 0.7; }
-        .model-glow { position: absolute; top: 50%; left: 50%; width: 200%; height: 200%; transform: translate(-50%, -50%); background: radial-gradient(circle, rgba(255, 10, 67, 0.2), transparent 70%); z-index: 0; pointer-events: none; }
+        
+        .model-img { 
+            width: 100%; 
+            height: 100%; 
+            object-fit: cover; 
+            border-radius: 25px;
+        }
+        
+        .model-glass { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 60%); 
+            z-index: 2; 
+            border-radius: 25px; 
+            pointer-events: none; 
+            opacity: 0.5;
+        }
+        
+        .model-glow { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            width: 200%; 
+            height: 200%; 
+            transform: translate(-50%, -50%); 
+            background: radial-gradient(circle, rgba(255, 10, 67, 0.3), transparent 70%); 
+            z-index: 0; 
+            pointer-events: none;
+            animation: glow-pulse 3s infinite;
+        }
+        
+        @keyframes glow-pulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 0.8; }
+        }
 
-        /* --- 3D UI --- */
+        /* --- ACTION BUTTONS (Optimisés tactile) --- */
+        .action-btn { 
+            background: linear-gradient(135deg, #ff0055 0%, #ff5500 100%); 
+            border: none; 
+            color: white; 
+            padding: 15px 35px; 
+            border-radius: 50px; 
+            font-weight: 700; 
+            margin-top: 20px; 
+            cursor: pointer;
+            font-size: 1rem;
+            box-shadow: 0 8px 20px rgba(255, 0, 85, 0.4);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            min-height: 50px;
+        }
+        
+        .action-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 10px rgba(255, 0, 85, 0.6);
+        }
+
+        /* --- TIMER DISPLAY --- */
+        .timer-container {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+            gap: 10px;
+        }
+        
+        .timer-unit {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(255, 215, 0, 0.05);
+            padding: 15px;
+            border-radius: 15px;
+            min-width: 70px;
+            border: 1px solid rgba(255, 215, 0, 0.2);
+        }
+        
+        .timer-value {
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+        }
+        
+        .timer-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: #888;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* --- RESPONSIVE --- */
+        @media (max-width: 380px) {
+            h2 { font-size: 2.3rem; }
+            #home h1 { font-size: 4rem; }
+            .neon-heart { width: 140px; }
+            .nav-item { min-width: 60px; font-size: 1rem; }
+            .nav-item span { font-size: 0.45rem; }
+            .mood-btn { font-size: 2rem; padding: 15px; min-height: 70px; }
+            .bank-balance { font-size: 2.2rem; }
+        }
+
+        /* --- ACCESSIBILITY --- */
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0,0,0,0);
+            white-space: nowrap;
+            border-width: 0;
+        }
+        
+        /* Focus states pour navigation clavier */
+        .nav-item:focus,
+        .action-btn:focus,
+        .mood-btn:focus,
+        .envelope:focus,
+        .bucket-item:focus {
+            outline: 3px solid var(--gold);
+            outline-offset: 2px;
+        }
+
+        /* --- LOADING ANIMATION --- */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--gold);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* --- 3D VIEW --- */
+        #canvas-container { width: 100%; height: 100%; }
         #ui-3d { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
-        #status-3d { position: absolute; bottom: 100px; width: 100%; text-align: center; color: #fff; text-shadow: 0 0 5px black; }
-        #btn-start-3d { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; color: black; border: none; padding: 15px 40px; font-weight: bold; pointer-events: auto; cursor: pointer; border-radius: 30px; display: none; }
-        #pip-container { position: absolute; bottom: 100px; right: 20px; width: 90px; height: 120px; border: 2px solid var(--primary); background: #000; z-index: 20; pointer-events: none; }
-        #pip-canvas { width: 100%; height: 100%; transform: scaleX(-1); object-fit: cover; }
-
-        .action-btn { background: linear-gradient(45deg, #ff0055, #ff5500); border: none; color: white; padding: 10px 25px; border-radius: 50px; font-weight: bold; margin-top: 15px; cursor: pointer; }
-        .neon-heart { width: 150px; fill: var(--primary); animation: pulse 1s infinite; filter: drop-shadow(0 0 10px var(--primary)); }
-        @keyframes pulse { 0%,100% {transform:scale(1)} 50% {transform:scale(1.1)} }
+        #status-3d { position: absolute; bottom: 100px; width: 100%; text-align: center; color: #fff; text-shadow: 0 0 10px black; font-weight: 600; }
+        #btn-start-3d { 
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%); 
+            background: linear-gradient(135deg, var(--primary), var(--gold)); 
+            color: white; 
+            border: none; 
+            padding: 18px 45px; 
+            font-weight: 900; 
+            pointer-events: auto; 
+            cursor: pointer; 
+            border-radius: 50px; 
+            display: none;
+            font-size: 1.1rem;
+            box-shadow: 0 10px 30px rgba(255, 10, 67, 0.5);
+        }
+        
+        #pip-container { 
+            position: absolute; 
+            bottom: 100px; 
+            right: 20px; 
+            width: 90px; 
+            height: 120px; 
+            border: 2px solid var(--primary); 
+            background: #000; 
+            z-index: 20; 
+            pointer-events: none;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        
+        #pip-canvas { 
+            width: 100%; 
+            height: 100%; 
+            transform: scaleX(-1); 
+            object-fit: cover; 
+        }
 
         video { position: fixed; opacity: 0; pointer-events: none; width: 1px; height: 1px; }
     </style>
 </head>
 <body>
+    <!-- Animated background -->
+    <div class="bg-hearts" id="bg-hearts" aria-hidden="true"></div>
 
-    <nav id="navbar">
-        <div class="nav-item active" onclick="goSite('home')"><i class="fas fa-heart"></i><span>Aşkım</span></div>
-        <div class="nav-item" onclick="goSite('timer')"><i class="fas fa-clock"></i><span>Zaman</span></div>
-        <div class="nav-item" onclick="goSite('album')"><i class="fas fa-camera-retro"></i><span>Polaroid</span></div>
-        <div class="nav-item" onclick="goSite('model')"><i class="fas fa-cube"></i><span>Dünyamız</span></div>
-        <div class="nav-item" onclick="goSite('bank')"><i class="fas fa-piggy-bank"></i><span>Banko</span></div>
-        <div class="nav-item" onclick="goSite('video')"><i class="fas fa-play-circle"></i><span>Video</span></div>
-        <div class="nav-item" onclick="goSite('playlist')"><i class="fas fa-music"></i><span>Müzik</span></div>
-        <div class="nav-item" onclick="goSite('letters')"><i class="fas fa-envelope-open-text"></i><span>Mektup</span></div>
-        <div class="nav-item" onclick="goSite('dates')"><i class="fas fa-calendar-star"></i><span>Günler</span></div>
-        <div class="nav-item" onclick="goSite('mood')"><i class="fas fa-smile-wink"></i><span>Mood</span></div>
-        <div class="nav-item" onclick="goSite('draw')"><i class="fas fa-paint-brush"></i><span>Çiz</span></div>
-        <div class="nav-item" onclick="goSite('travel')"><i class="fas fa-globe-americas"></i><span>Seyahat</span></div>
-        <div class="nav-item" onclick="goSite('map')"><i class="fas fa-map-marker-alt"></i><span>Yerimiz</span></div>
-        <div class="nav-item" onclick="goSite('bucket')"><i class="fas fa-list-ul"></i><span>Hedefler</span></div>
-        <div class="nav-item" onclick="goSite('emergency')"><i class="fas fa-exclamation-triangle"></i><span>Acil</span></div>
-        <div class="nav-item" onclick="goSite('countdown')"><i class="fas fa-hourglass-start"></i><span>Düğün</span></div>
-        <div class="nav-item" onclick="goSite('wall')"><i class="fas fa-comments"></i><span>Duvar</span></div>
-        <div class="nav-item" onclick="goSite('compliment')"><i class="fas fa-star"></i><span>İltifat</span></div>
-        <div class="nav-item" onclick="goMode('reactor')" style="color: var(--primary); border-left:1px solid #333; padding-left:15px;"><i class="fas fa-atom"></i><span>Reaktör</span></div>
-        <div class="nav-item" onclick="goMode('hologram')" style="color: #00e5ff;"><i class="fas fa-cube"></i><span>Hologram</span></div>
+    <!-- Navigation -->
+    <nav id="navbar" role="navigation" aria-label="Menu principal">
+        <button class="nav-item active" onclick="goSite('home')" aria-label="Accueil"><i class="fas fa-heart" aria-hidden="true"></i><span>Aşkım</span></button>
+        <button class="nav-item" onclick="goSite('timer')" aria-label="Minuteur"><i class="fas fa-clock" aria-hidden="true"></i><span>Zaman</span></button>
+        <button class="nav-item" onclick="goSite('album')" aria-label="Album photo"><i class="fas fa-camera-retro" aria-hidden="true"></i><span>Polaroid</span></button>
+        <button class="nav-item" onclick="goSite('model')" aria-label="Notre monde"><i class="fas fa-cube" aria-hidden="true"></i><span>Dünyamız</span></button>
+        <button class="nav-item" onclick="goSite('bank')" aria-label="Banque"><i class="fas fa-piggy-bank" aria-hidden="true"></i><span>Banko</span></button>
+        <button class="nav-item" onclick="goSite('video')" aria-label="Vidéo"><i class="fas fa-play-circle" aria-hidden="true"></i><span>Video</span></button>
+        <button class="nav-item" onclick="goSite('playlist')" aria-label="Musique"><i class="fas fa-music" aria-hidden="true"></i><span>Müzik</span></button>
+        <button class="nav-item" onclick="goSite('letters')" aria-label="Lettres"><i class="fas fa-envelope-open-text" aria-hidden="true"></i><span>Mektup</span></button>
+        <button class="nav-item" onclick="goSite('dates')" aria-label="Dates importantes"><i class="fas fa-calendar-star" aria-hidden="true"></i><span>Günler</span></button>
+        <button class="nav-item" onclick="goSite('mood')" aria-label="Humeur"><i class="fas fa-smile-wink" aria-hidden="true"></i><span>Mood</span></button>
+        <button class="nav-item" onclick="goSite('draw')" aria-label="Dessiner"><i class="fas fa-paint-brush" aria-hidden="true"></i><span>Çiz</span></button>
+        <button class="nav-item" onclick="goSite('travel')" aria-label="Voyages"><i class="fas fa-globe-americas" aria-hidden="true"></i><span>Seyahat</span></button>
+        <button class="nav-item" onclick="goSite('map')" aria-label="Notre lieu"><i class="fas fa-map-marker-alt" aria-hidden="true"></i><span>Yerimiz</span></button>
+        <button class="nav-item" onclick="goSite('bucket')" aria-label="Objectifs"><i class="fas fa-list-ul" aria-hidden="true"></i><span>Hedefler</span></button>
+        <button class="nav-item" onclick="goSite('countdown')" aria-label="Mariage"><i class="fas fa-hourglass-start" aria-hidden="true"></i><span>Düğün</span></button>
+        <button class="nav-item" onclick="goSite('compliment')" aria-label="Compliment"><i class="fas fa-star" aria-hidden="true"></i><span>İltifat</span></button>
+        <button class="nav-item" onclick="goMode('reactor')" style="color: var(--primary); border-left:1px solid #333; padding-left:15px;" aria-label="Mode réacteur 3D"><i class="fas fa-atom" aria-hidden="true"></i><span>Reaktör</span></button>
     </nav>
 
     <main id="view-site" class="view-layer active">
         
-        <section id="home" class="section">
-            <h1 style="font-family:'Sacramento', cursive; font-size:4rem; color:var(--primary);">Dilara</h1>
-            <svg class="neon-heart" viewBox="0 0 512 512"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>
-            <p style="margin-top:20px; font-style:italic;">"Benim dünyam sensin."</p>
+        <!-- HOME -->
+        <section id="home" class="section" aria-label="Page d'accueil">
+            <h1>Dilara</h1>
+            <svg class="neon-heart" viewBox="0 0 512 512" aria-hidden="true"><path d="M462.3 62.6C407.5 15.9 326 24.3 275.7 76.2L256 96.5l-19.7-20.3C186.1 24.3 104.5 15.9 49.7 62.6c-62.8 53.6-66.1 149.8-9.9 207.9l193.5 199.8c12.5 12.9 32.8 12.9 45.3 0l193.5-199.8c56.3-58.1 53-154.3-9.8-207.9z"/></svg>
+            <p style="margin-top:25px; font-style:italic; font-size:1.1rem; opacity: 0.9;">"Benim dünyam sensin."</p>
         </section>
 
-        <section id="timer" class="section">
-            <h2>Zaman</h2>
+        <!-- TIMER -->
+        <section id="timer" class="section" aria-label="Notre temps ensemble">
+            <h2>Notre Temps Ensemble</h2>
             <div class="glass-card">
-                <p style="color:#aaa; margin-bottom:15px;">13 Kasım 2024...</p>
-                <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:1.2rem;">
-                    <div><div id="d">0</div><span style="font-size:0.6rem">GÜN</span></div>
-                    <div><div id="h">0</div><span style="font-size:0.6rem">SAAT</span></div>
-                    <div><div id="m">0</div><span style="font-size:0.6rem">DK</span></div>
-                    <div><div id="s">0</div><span style="font-size:0.6rem">SN</span></div>
+                <p style="color:#aaa; margin-bottom:20px; font-weight:600;">Depuis le 13 Novembre 2024</p>
+                <div class="timer-container">
+                    <div class="timer-unit">
+                        <div class="timer-value" id="d" aria-live="polite">0</div>
+                        <div class="timer-label">Jours</div>
+                    </div>
+                    <div class="timer-unit">
+                        <div class="timer-value" id="h">0</div>
+                        <div class="timer-label">Heures</div>
+                    </div>
+                    <div class="timer-unit">
+                        <div class="timer-value" id="m">0</div>
+                        <div class="timer-label">Min</div>
+                    </div>
+                    <div class="timer-unit">
+                        <div class="timer-value" id="s">0</div>
+                        <div class="timer-label">Sec</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <section id="album" class="section">
+        <!-- ALBUM -->
+        <section id="album" class="section" aria-label="Album photo">
             <h2>Polaroid Anıları 📸</h2>
             <div class="glass-card" style="max-width:500px;">
                 <div class="photo-grid">
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p1.jpg')"></div>Biz</div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p2.jpg')"></div>Gülüşün</div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p3.jpg')"></div>Anı</div>
-                    <div class="photo-frame"><div class="photo-img" style="background-image:url('p4.jpg')"></div>Aşk</div>
+                    <button class="photo-frame" onclick="openPhoto(1)" aria-label="Photo Biz"><div class="photo-img" style="background-image:url('p1.jpg')" role="img" aria-label="Notre photo ensemble"></div>Biz</button>
+                    <button class="photo-frame" onclick="openPhoto(2)" aria-label="Photo Gülüşün"><div class="photo-img" style="background-image:url('p2.jpg')" role="img" aria-label="Ton sourire"></div>Gülüşün</button>
+                    <button class="photo-frame" onclick="openPhoto(3)" aria-label="Photo Anı"><div class="photo-img" style="background-image:url('p3.jpg')" role="img" aria-label="Souvenir"></div>Anı</button>
+                    <button class="photo-frame" onclick="openPhoto(4)" aria-label="Photo Aşk"><div class="photo-img" style="background-image:url('p4.jpg')" role="img" aria-label="Amour"></div>Aşk</button>
                 </div>
             </div>
         </section>
 
-        <section id="model" class="section">
+        <!-- MODEL -->
+        <section id="model" class="section" aria-label="Notre monde 3D">
             <h2>Bizim Dünyamız 🧊</h2>
             <p style="margin-bottom: 20px; font-style: italic; color: #aaa;">"Notre petit univers à nous..."</p>
-            <div class="model-wrapper" id="tilt-card">
-                <div class="model-glass"></div>
-                <img src="miniature.jpg" alt="Notre Miniature" class="model-img">
+            <div class="model-wrapper" id="tilt-card" tabindex="0" role="img" aria-label="Carte 3D interactive">
                 <div class="model-glow"></div>
+                <img src="miniature.jpg" alt="Notre miniature" class="model-img">
+                <div class="model-glass"></div>
             </div>
             <div class="glass-card" style="margin-top: 30px;">
-                <p>Sen ve Ben. Sonsuza kadar.</p>
+                <p style="font-size: 1.05rem;">Sen ve Ben. Sonsuza kadar. 💕</p>
             </div>
         </section>
 
-        <section id="bank" class="section">
+        <!-- BANK -->
+        <section id="bank" class="section" aria-label="Banque de l'amour">
             <h2>Aşk Bankosu 💝</h2>
             <div class="glass-card">
                 <div class="bank-card">
-                    <div style="text-align:left; font-size:0.7rem; color:#888;">LOVE CARD</div>
-                    <div id="love-balance" class="bank-balance">1,000,000</div>
-                    <div style="text-align:right; font-size:0.7rem; color:#aaa;">POINTS</div>
+                    <div style="text-align:left; font-size:0.7rem; color:#888; font-weight:600; letter-spacing:1px;">LOVE CARD</div>
+                    <div id="love-balance" class="bank-balance" aria-live="polite" aria-label="Solde de points d'amour">1,000,000</div>
+                    <div style="text-align:right; font-size:0.7rem; color:#aaa; font-weight:600;">POINTS</div>
                 </div>
-                <button class="action-btn" onclick="addLove()">💖 Puan Yatır</button>
+                <button class="action-btn" onclick="addLove()" aria-label="Ajouter des points d'amour">💖 Puan Yatır</button>
             </div>
         </section>
 
-        <section id="video" class="section">
-            <h2>Video</h2>
+        <!-- VIDEO -->
+        <section id="video" class="section" aria-label="Vidéo">
+            <h2>Notre Vidéo 🎬</h2>
             <div class="glass-card">
-                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:10px;">
-                    <iframe src="https://www.youtube.com/embed/NHTrguAP2Vs" style="position:absolute; top:0; left:0; width:100%; height:100%;" frameborder="0" allowfullscreen></iframe>
+                <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; border-radius:15px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+                    <iframe src="https://www.youtube.com/embed/NHTrguAP2Vs" style="position:absolute; top:0; left:0; width:100%; height:100%;" frameborder="0" allowfullscreen title="Notre vidéo spéciale"></iframe>
                 </div>
             </div>
         </section>
 
-        <section id="playlist" class="section">
-            <h2>Müzik</h2>
+        <!-- PLAYLIST -->
+        <section id="playlist" class="section" aria-label="Playlist musicale">
+            <h2>Notre Musique 🎵</h2>
             <div class="glass-card">
-                <div class="track-row"><div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273573c72703272930260336203')"></div><div><b>Sadece Dilara</b><br><small>Mustafa</small></div></div>
-                <div class="track-row"><div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273c5598ba82b64df42d22b2729')"></div><div><b>Sonsuz Aşk</b><br><small>Bizimki</small></div></div>
+                <button class="track-row" onclick="playTrack(1)" aria-label="Jouer Sadece Dilara">
+                    <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273573c72703272930260336203')" role="img" aria-label="Pochette Sadece Dilara"></div>
+                    <div><b>Sadece Dilara</b><br><small style="color:#888;">Mustafa</small></div>
+                </button>
+                <button class="track-row" onclick="playTrack(2)" aria-label="Jouer Sonsuz Aşk">
+                    <div class="track-img" style="background-image:url('https://i.scdn.co/image/ab67616d0000b273c5598ba82b64df42d22b2729')" role="img" aria-label="Pochette Sonsuz Aşk"></div>
+                    <div><b>Sonsuz Aşk</b><br><small style="color:#888;">Bizimki</small></div>
+                </button>
             </div>
         </section>
 
-        <section id="letters" class="section">
+        <!-- LETTERS -->
+        <section id="letters" class="section" aria-label="Boîte à lettres">
             <h2>Mektup Kutusu 💌</h2>
             <div class="glass-card">
                 <div class="envelopes-grid">
-                    <div class="envelope" onclick="alert('Kıyamam sana... Ben hep buradayım. ❤️')">😢 Üzgünsen</div>
-                    <div class="envelope" onclick="alert('Kapat gözlerini, elini kalbine koy. Oradayım. 🤗')">🥰 Özlediysen</div>
-                    <div class="envelope" onclick="alert('Gülüşün benim dünyamı aydınlatıyor! ✨')">😊 Mutluysan</div>
-                    <div class="envelope" onclick="alert('Biz her şeyi aşarız. Elimi tut. 💪')">😨 Korkuyorsan</div>
+                    <button class="envelope" onclick="openLetter('sad')" aria-label="Si tu es triste">😢<br>Üzgünsen</button>
+                    <button class="envelope" onclick="openLetter('miss')" aria-label="Si je te manque">🥰<br>Özlediysen</button>
+                    <button class="envelope" onclick="openLetter('happy')" aria-label="Si tu es heureuse">😊<br>Mutluysan</button>
+                    <button class="envelope" onclick="openLetter('scared')" aria-label="Si tu as peur">😨<br>Korkuyorsan</button>
                 </div>
             </div>
         </section>
 
-        <section id="dates" class="section">
+        <!-- DATES -->
+        <section id="dates" class="section" aria-label="Dates importantes">
             <h2>Özel Günler 🎂</h2>
             <div class="glass-card" style="text-align:left;">
-                <div style="border-left:3px solid var(--primary); padding-left:15px; margin-bottom:20px;">
-                    <div style="color:var(--gold); font-weight:bold;">13 Kasım 2024</div><div>Tanışma ❤️</div>
+                <div style="border-left:4px solid var(--primary); padding-left:20px; margin-bottom:25px; padding-top:5px; padding-bottom:5px;">
+                    <div style="color:var(--gold); font-weight:bold; font-size:1.1rem; margin-bottom:5px;">13 Kasım 2024</div>
+                    <div style="font-size:0.95rem;">Notre Rencontre ❤️</div>
                 </div>
-                <div style="border-left:3px solid #00e5ff; padding-left:15px;">
-                    <div style="color:#00e5ff; font-weight:bold;">04 Nisan 2026</div><div>Evlenme 👰🤵</div>
+                <div style="border-left:4px solid #00e5ff; padding-left:20px; padding-top:5px; padding-bottom:5px;">
+                    <div style="color:#00e5ff; font-weight:bold; font-size:1.1rem; margin-bottom:5px;">04 Nisan 2026</div>
+                    <div style="font-size:0.95rem;">Notre Mariage 👰🤵</div>
                 </div>
             </div>
         </section>
 
-        <section id="mood" class="section">
+        <!-- MOOD -->
+        <section id="mood" class="section" aria-label="Indicateur d'humeur">
             <h2>Ruh Hali 🌸</h2>
             <div class="glass-card">
-                <p style="margin-bottom:15px;">Nasılsın?</p>
-                <div class="mood-grid">
-                    <div class="mood-btn" onclick="setMood('happy')">🥰</div>
-                    <div class="mood-btn" onclick="setMood('sad')">😢</div>
-                    <div class="mood-btn" onclick="setMood('tired')">😴</div>
-                    <div class="mood-btn" onclick="setMood('angry')">😤</div>
-                    <div class="mood-btn" onclick="setMood('love')">😍</div>
-                    <div class="mood-btn" onclick="setMood('sick')">🤒</div>
+                <p style="margin-bottom:20px; font-size:1.1rem; font-weight:600;">Comment te sens-tu ?</p>
+                <div class="mood-grid" role="group" aria-label="Sélection d'humeur">
+                    <button class="mood-btn" onclick="setMood('happy')" aria-label="Heureuse">🥰</button>
+                    <button class="mood-btn" onclick="setMood('sad')" aria-label="Triste">😢</button>
+                    <button class="mood-btn" onclick="setMood('tired')" aria-label="Fatiguée">😴</button>
+                    <button class="mood-btn" onclick="setMood('angry')" aria-label="En colère">😤</button>
+                    <button class="mood-btn" onclick="setMood('love')" aria-label="Amoureuse">😍</button>
+                    <button class="mood-btn" onclick="setMood('sick')" aria-label="Malade">🤒</button>
                 </div>
-                <p id="mood-resp" style="margin-top:20px; color:var(--gold); min-height:20px;"></p>
+                <p id="mood-resp" style="margin-top:25px; color:var(--gold); min-height:30px; font-size:1.1rem; font-weight:600;" aria-live="polite"></p>
             </div>
         </section>
 
-        <section id="draw" class="section">
+        <!-- DRAW -->
+        <section id="draw" class="section" aria-label="Dessiner ensemble">
             <h2>Birlikte Çiz 🎨</h2>
             <div class="glass-card">
-                <canvas id="draw-canvas"></canvas>
-                <div class="colors-row">
-                    <div class="color-dot" style="background:red;" onclick="setColor('red')"></div>
-                    <div class="color-dot" style="background:blue;" onclick="setColor('blue')"></div>
-                    <div class="color-dot" style="background:white;" onclick="setColor('white')"></div>
-                    <button onclick="clearCanvas()" style="background:#333; color:white; border:none; padding:5px 10px; border-radius:5px;">Sil</button>
+                <canvas id="draw-canvas" aria-label="Toile de dessin"></canvas>
+                <div class="colors-row" role="group" aria-label="Palette de couleurs">
+                    <button class="color-dot" style="background:#ff0055;" onclick="setColor('#ff0055')" aria-label="Couleur rose"></button>
+                    <button class="color-dot" style="background:#0088ff;" onclick="setColor('#0088ff')" aria-label="Couleur bleue"></button>
+                    <button class="color-dot" style="background:white;" onclick="setColor('white')" aria-label="Couleur blanche"></button>
+                    <button class="color-dot" style="background:#ffd700;" onclick="setColor('#ffd700')" aria-label="Couleur or"></button>
+                    <button onclick="clearCanvas()" style="background:#333; color:white; border:none; padding:10px 20px; border-radius:25px; cursor:pointer; font-weight:600; min-height:40px;" aria-label="Effacer le dessin">Effacer</button>
                 </div>
-                <p style="font-size:0.8rem; margin-top:10px; color:#888;">Bana bir kalp çiz ❤️</p>
+                <p style="font-size:0.85rem; margin-top:15px; color:#aaa; font-style:italic;">Dessine-moi un cœur ❤️</p>
             </div>
         </section>
 
-        <section id="travel" class="section">
-            <h2>Seyahat 🌍</h2>
+        <!-- TRAVEL -->
+        <section id="travel" class="section" aria-label="Destinations de voyage">
+            <h2>Nos Voyages 🌍</h2>
             <div class="glass-card" style="text-align:left;">
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🗼 Paris</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🇯🇵 Tokyo</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🇮🇹 Roma</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🏝️ Maldivler</div>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Paris">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🗼 Paris</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Tokyo">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🇯🇵 Tokyo</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Rome">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🇮🇹 Roma</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Maldives">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🏝️ Maldivler</span>
+                </button>
             </div>
         </section>
 
-        <section id="map" class="section">
-            <h2>Yerimiz</h2>
+        <!-- MAP -->
+        <section id="map" class="section" aria-label="Notre lieu">
+            <h2>Notre Lieu 📍</h2>
             <div class="glass-card">
-                <div style="height:200px; background:#111; display:flex; justify-content:center; align-items:center;"><i class="fas fa-map-marker-alt" style="font-size:3rem; color:red;"></i></div>
-                <p style="margin-top:10px;">Parking Bérard, Valserhône</p>
+                <div style="height:220px; background:linear-gradient(135deg, #1a1a1a, #0a0a0a); display:flex; justify-content:center; align-items:center; border-radius:15px; box-shadow:inset 0 2px 10px rgba(0,0,0,0.5);" role="img" aria-label="Carte de localisation">
+                    <i class="fas fa-map-marker-alt" style="font-size:4rem; color:var(--primary); filter:drop-shadow(0 0 20px var(--primary));"></i>
+                </div>
+                <p style="margin-top:15px; font-weight:600; font-size:1.05rem;">Parking Bérard, Valserhône</p>
+                <p style="font-size:0.85rem; color:#888; margin-top:5px;">Notre endroit spécial 💕</p>
             </div>
         </section>
 
-        <section id="bucket" class="section">
-            <h2>Hedefler</h2>
+        <!-- BUCKET LIST -->
+        <section id="bucket" class="section" aria-label="Nos objectifs">
+            <h2>Nos Rêves 🌟</h2>
             <div class="glass-card" style="text-align:left;">
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🌍 Dünya Turu</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 💍 Evlenme (2026)</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🎈 Kapadokya</div>
-                <div class="bucket-item" onclick="this.classList.toggle('checked')"><div class="bucket-check"></div> 🏠 Maison</div>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Tour du monde">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🌍 Dünya Turu</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Se marier en 2026">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>💍 Evlenme (2026)</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Visiter la Cappadoce">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🎈 Kapadokya</span>
+                </button>
+                <button class="bucket-item" onclick="toggleItem(this)" aria-label="Avoir notre maison">
+                    <div class="bucket-check" role="checkbox" aria-checked="false"></div>
+                    <span>🏠 Notre Maison</span>
+                </button>
             </div>
         </section>
 
-        <section id="compliment" class="section">
+        <!-- COMPLIMENT -->
+        <section id="compliment" class="section" aria-label="Compliment quotidien">
             <h2>Günlük İltifat 🌟</h2>
             <div class="glass-card">
-                <p id="comp-text" style="font-style:italic; font-size:1.2rem; margin:20px 0;">"Sen bir harikasın."</p>
-                <button class="action-btn" onclick="newCompliment()">Yeni Söz</button>
+                <p id="comp-text" style="font-style:italic; font-size:1.3rem; margin:25px 0; color:var(--gold); text-shadow:0 0 10px rgba(255,215,0,0.3);">"Tu es extraordinaire."</p>
+                <button class="action-btn" onclick="newCompliment()" aria-label="Obtenir un nouveau compliment">Nouveau Compliment</button>
             </div>
         </section>
 
-        <section id="emergency" class="section">
-            <h2>Acil Durum</h2>
+        <!-- COUNTDOWN -->
+        <section id="countdown" class="section" aria-label="Compte à rebours mariage">
+            <h2>Notre Mariage 💒</h2>
             <div class="glass-card">
-                <button class="action-btn" style="background:red;" onclick="window.location.href='https://wa.me/33600000000'">SOS</button>
+                <h1 id="wed-t" style="color:var(--primary); font-size:3.5rem; text-shadow:0 0 30px rgba(255,10,67,0.5); margin:20px 0;" aria-live="polite">...</h1>
+                <p style="font-size:1.2rem; font-weight:600; color:var(--gold);">04.04.2026</p>
+                <p style="font-size:0.9rem; color:#888; margin-top:10px;">J'ai hâte d'être ta femme 👰‍♀️</p>
             </div>
         </section>
 
-        <section id="countdown" class="section">
-            <h2>Düğün</h2>
-            <div class="glass-card">
-                <h1 id="wed-t" style="color:var(--primary);">...</h1>
-                <p>04.04.2026</p>
-            </div>
-        </section>
-
-        <section id="wall" class="section">
-            <h2>Duvar</h2>
-            <div class="glass-card" style="height:200px; overflow:hidden; position:relative;" id="wall-c"></div>
+        <!-- WALL -->
+        <section id="wall" class="section" aria-label="Mur de messages">
+            <h2>Mur d'Amour 💬</h2>
+            <div class="glass-card" style="height:250px; overflow:hidden; position:relative; display:flex; align-items:center; justify-content:center;" id="wall-c" aria-label="Messages d'amour flottants"></div>
         </section>
 
     </main>
 
+    <!-- 3D VIEW -->
     <div id="view-3d" class="view-layer">
-        <div id="canvas-container" style="width:100%; height:100%;"></div>
+        <div id="canvas-container"></div>
         <div id="ui-3d">
-            <div id="header-3d" style="position:absolute; top:20px; width:100%; text-align:center; font-size:1.5rem;">MODE 3D</div>
-            <div id="status-3d" style="position:absolute; bottom:100px; width:100%; text-align:center;">En attente...</div>
-            <div id="pip-container" style="position:absolute; bottom:90px; right:20px; width:100px; height:133px; border:2px solid var(--primary); background:#000;"><canvas id="pip-canvas" style="width:100%; height:100%; transform:scaleX(-1);"></canvas></div>
-            <button id="btn-start-3d" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); padding:15px 30px; border-radius:30px;" onclick="init3DSystem()">BAŞLAT</button>
+            <div style="position:absolute; top:25px; width:100%; text-align:center; font-size:1.6rem; font-weight:700; color:var(--gold); text-shadow:0 0 20px rgba(255,215,0,0.5);">MODE 3D ✨</div>
+            <div id="status-3d">En attente...</div>
+            <div id="pip-container"><canvas id="pip-canvas"></canvas></div>
+            <button id="btn-start-3d" onclick="init3DSystem()" aria-label="Démarrer l'expérience 3D">COMMENCER</button>
         </div>
     </div>
     
-    <video id="webcam-video" playsinline muted></video>
+    <video id="webcam-video" playsinline muted aria-hidden="true"></video>
 
     <script>
-        // === SITE JS ===
-        const startT = new Date('2024-11-13T00:00:00').getTime();
-        const wedT = new Date('2026-04-04T00:00:00').getTime();
-        
-        setInterval(() => {
-            const now = new Date().getTime();
-            const d = now - startT;
-            document.getElementById('d').innerText = Math.floor(d/(1000*60*60*24));
-            document.getElementById('h').innerText = Math.floor((d%(1000*60*60*24))/(1000*60*60));
-            document.getElementById('m').innerText = Math.floor((d%(1000*60*60))/(1000*60));
-            document.getElementById('s').innerText = Math.floor((d%(1000*60))/1000);
+        // ===== CONFIGURATION =====
+        const CONFIG = {
+            startDate: new Date('2024-11-13T00:00:00').getTime(),
+            weddingDate: new Date('2026-04-04T00:00:00').getTime(),
+            photoUrl: 'photo.jpg'
+        };
+
+        // ===== BACKGROUND HEARTS ANIMATION =====
+        function createFloatingHearts() {
+            const container = document.getElementById('bg-hearts');
+            const hearts = ['❤️', '💕', '💖', '💗', '💝'];
             
-            const w = Math.floor((wedT - now)/(1000*60*60*24));
-            document.getElementById('wed-t').innerText = w + " Jours";
-        }, 1000);
+            for (let i = 0; i < 15; i++) {
+                const heart = document.createElement('div');
+                heart.className = 'floating-heart';
+                heart.textContent = hearts[Math.floor(Math.random() * hearts.length)];
+                heart.style.left = Math.random() * 100 + '%';
+                heart.style.animationDelay = Math.random() * 15 + 's';
+                heart.style.animationDuration = (15 + Math.random() * 10) + 's';
+                container.appendChild(heart);
+            }
+        }
+        
+        createFloatingHearts();
 
-        // Features
-        let bal = 1000000; function addLove() { bal+=1000; document.getElementById('love-balance').innerText = bal.toLocaleString(); }
-        function setMood(m) { const r = {happy:"Harika!", sad:"Kıyamam...", tired:"Dinlen", angry:"Sakin ol", love:"Ben de seni", sick:"Geçmiş olsun"}; document.getElementById('mood-resp').innerText = r[m]; }
-        const c = ["Gözlerin yıldızlar gibi.", "Seninle her an hediye.", "Dünyanın en güzeli.", "Mucizemsin."];
-        function newCompliment() { document.getElementById('comp-text').innerText = '"'+c[Math.floor(Math.random()*c.length)]+'"'; }
+        // ===== TIMERS =====
+        function updateTimers() {
+            const now = new Date().getTime();
+            
+            // Temps ensemble
+            const elapsed = now - CONFIG.startDate;
+            document.getElementById('d').textContent = Math.floor(elapsed / (1000 * 60 * 60 * 24));
+            document.getElementById('h').textContent = Math.floor((elapsed % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            document.getElementById('m').textContent = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+            document.getElementById('s').textContent = Math.floor((elapsed % (1000 * 60)) / 1000);
+            
+            // Compte à rebours mariage
+            const remaining = CONFIG.weddingDate - now;
+            const days = Math.floor(remaining / (1000 * 60 * 60 * 24));
+            document.getElementById('wed-t').textContent = days + " Jours";
+        }
+        
+        setInterval(updateTimers, 1000);
+        updateTimers();
 
-        // Wall
-        const wc = document.getElementById('wall-c');
-        const txts = ["Seni Seviyorum", "Love", "Aşk"];
-        for(let i=0; i<10; i++) {
-            let el = document.createElement('div'); el.innerText=txts[Math.floor(Math.random()*txts.length)];
-            el.style.position='absolute'; el.style.left=Math.random()*80+'%'; el.style.top=Math.random()*80+'%'; el.style.opacity='0.5';
-            wc.appendChild(el);
+        // ===== LOVE BANK =====
+        let balance = 1000000;
+        
+        function addLove() {
+            balance += 1000;
+            const display = document.getElementById('love-balance');
+            display.textContent = balance.toLocaleString('fr-FR');
+            
+            // Animation
+            display.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                display.style.transform = 'scale(1)';
+            }, 300);
         }
 
-        // Draw
-        setTimeout(()=>{
-            const cvs = document.getElementById('draw-canvas'); const ctx = cvs.getContext('2d');
-            cvs.width = cvs.offsetWidth; cvs.height = cvs.offsetHeight;
-            ctx.lineWidth=3; ctx.strokeStyle='red';
-            let paint=false;
-            function draw(e){
-                if(!paint)return; e.preventDefault();
-                const r=cvs.getBoundingClientRect();
-                const x=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
-                const y=(e.touches?e.touches[0].clientY:e.clientY)-r.top;
-                ctx.lineTo(x,y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(x,y);
-            }
-            cvs.addEventListener('mousedown', ()=>{paint=true}); cvs.addEventListener('touchstart', ()=>{paint=true});
-            cvs.addEventListener('mouseup', ()=>{paint=false;ctx.beginPath()}); cvs.addEventListener('touchend', ()=>{paint=false;ctx.beginPath()});
-            cvs.addEventListener('mousemove', draw); cvs.addEventListener('touchmove', draw);
-        },1000);
+        // ===== MOOD TRACKER =====
+        const moodResponses = {
+            happy: "Je suis si heureuse que tu sois heureuse ! 🥰",
+            sad: "Ne sois pas triste mon amour, je suis là pour toi... 💕",
+            tired: "Repose-toi bien ma chérie 😴",
+            angry: "Respire profondément, tout va s'arranger 🌸",
+            love: "Je t'aime encore plus ! 😍💖",
+            sick: "Prends soin de toi, je pense à toi ❤️"
+        };
+        
+        function setMood(mood) {
+            const response = document.getElementById('mood-resp');
+            response.textContent = moodResponses[mood];
+            response.style.animation = 'none';
+            setTimeout(() => {
+                response.style.animation = 'fadeIn 0.5s ease';
+            }, 10);
+        }
 
-        // Nav
+        // ===== COMPLIMENTS =====
+        const compliments = [
+            "Tes yeux brillent comme des étoiles.",
+            "Chaque moment avec toi est un cadeau.",
+            "Tu es la plus belle du monde.",
+            "Tu es mon miracle quotidien.",
+            "Ton sourire illumine ma vie.",
+            "Tu rends tout plus beau.",
+            "Je suis l'homme le plus chanceux.",
+            "Tu es parfaite comme tu es."
+        ];
+        
+        function newCompliment() {
+            const text = document.getElementById('comp-text');
+            const randomComp = compliments[Math.floor(Math.random() * compliments.length)];
+            text.style.opacity = '0';
+            setTimeout(() => {
+                text.textContent = '"' + randomComp + '"';
+                text.style.opacity = '1';
+            }, 300);
+        }
+
+        // ===== LETTERS =====
+        const letters = {
+            sad: "Mon amour, ne sois pas triste... Je suis toujours là pour toi. Chaque larme qui coule, je voudrais l'effacer avec un baiser. Tu es forte, tu es belle, et je t'aime infiniment. ❤️",
+            miss: "Ferme les yeux, pose ta main sur ton cœur... Je suis là. À chaque battement, je pense à toi. La distance n'est rien quand l'amour est si fort. Je t'aime. 🤗💕",
+            happy: "Ton bonheur est mon bonheur ! Ton sourire illumine ma journée et réchauffe mon cœur. Continue de briller mon étoile ! ✨😊",
+            scared: "N'aie pas peur mon amour. Nous affronterons tout ensemble, main dans la main. Tu n'es jamais seule. Je suis ta force et tu es la mienne. 💪❤️"
+        };
+        
+        function openLetter(type) {
+            alert(letters[type]);
+        }
+
+        // ===== WALL OF LOVE =====
+        const wallContainer = document.getElementById('wall-c');
+        const wallTexts = ["Seni Seviyorum ❤️", "Je t'aime 💕", "Aşkım 💖", "Mon cœur 💗", "Sonsuza kadar ♾️"];
+        
+        for (let i = 0; i < 12; i++) {
+            const el = document.createElement('div');
+            el.textContent = wallTexts[Math.floor(Math.random() * wallTexts.length)];
+            el.style.position = 'absolute';
+            el.style.left = Math.random() * 80 + '%';
+            el.style.top = Math.random() * 80 + '%';
+            el.style.opacity = '0.4';
+            el.style.fontSize = (0.8 + Math.random() * 0.7) + 'rem';
+            el.style.transform = 'rotate(' + (Math.random() * 30 - 15) + 'deg)';
+            el.style.color = ['#ff0055', '#ffd700', '#ff5778'][Math.floor(Math.random() * 3)];
+            wallContainer.appendChild(el);
+        }
+
+        // ===== DRAWING CANVAS =====
+        setTimeout(() => {
+            const canvas = document.getElementById('draw-canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = canvas.offsetWidth * 2; // Haute résolution
+            canvas.height = canvas.offsetHeight * 2;
+            ctx.scale(2, 2);
+            ctx.lineWidth = 4;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.strokeStyle = '#ff0055';
+            
+            let isDrawing = false;
+            let lastX = 0;
+            let lastY = 0;
+            
+            function getCoordinates(e) {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+                const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+                return { x, y };
+            }
+            
+            function startDrawing(e) {
+                e.preventDefault();
+                isDrawing = true;
+                const coords = getCoordinates(e);
+                lastX = coords.x;
+                lastY = coords.y;
+            }
+            
+            function draw(e) {
+                if (!isDrawing) return;
+                e.preventDefault();
+                
+                const coords = getCoordinates(e);
+                ctx.beginPath();
+                ctx.moveTo(lastX, lastY);
+                ctx.lineTo(coords.x, coords.y);
+                ctx.stroke();
+                
+                lastX = coords.x;
+                lastY = coords.y;
+            }
+            
+            function stopDrawing() {
+                isDrawing = false;
+            }
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('touchstart', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('touchmove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('touchend', stopDrawing);
+            canvas.addEventListener('mouseleave', stopDrawing);
+        }, 500);
+        
+        function setColor(color) {
+            const canvas = document.getElementById('draw-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.strokeStyle = color;
+        }
+        
+        function clearCanvas() {
+            const canvas = document.getElementById('draw-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // ===== NAVIGATION =====
         function goSite(id) {
             document.getElementById('view-3d').classList.remove('active');
             document.getElementById('view-site').classList.add('active');
-            document.getElementById(id).scrollIntoView({behavior:'smooth'});
-            upNav(id);
+            document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+            updateNav(id);
         }
+        
         function goMode(mode) {
             document.getElementById('view-site').classList.remove('active');
             document.getElementById('view-3d').classList.add('active');
-            document.getElementById('btn-start-3d').style.display='block';
-            upNav(mode);
+            document.getElementById('btn-start-3d').style.display = 'block';
+            updateNav(mode);
             currentMode = mode;
         }
-        function upNav(id) { document.querySelectorAll('.nav-item').forEach(e=>{e.classList.remove('active'); if(e.onclick.toString().includes(id)) e.classList.add('active');}); }
-
-        // --- 3D TILT EFFECT FOR MINIATURE ---
-        const card = document.getElementById('tilt-card');
-        if (card) {
-            // Mouse
-            card.addEventListener('mousemove', (e) => {
-                const rect = card.getBoundingClientRect();
-                const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-                const centerX = rect.width / 2; const centerY = rect.height / 2;
-                const rotateX = ((y - centerY) / centerY) * -15;
-                const rotateY = ((x - centerX) / centerX) * 15;
-                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+        
+        function updateNav(activeId) {
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+                const onclick = item.getAttribute('onclick');
+                if (onclick && onclick.includes(activeId)) {
+                    item.classList.add('active');
+                }
             });
-            card.addEventListener('mouseleave', () => { card.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`; });
+        }
+
+        // ===== BUCKET/TRAVEL TOGGLE =====
+        function toggleItem(button) {
+            button.classList.toggle('checked');
+            const checkbox = button.querySelector('.bucket-check');
+            const isChecked = button.classList.contains('checked');
+            checkbox.setAttribute('aria-checked', isChecked);
+        }
+
+        // ===== PHOTO VIEWER =====
+        function openPhoto(id) {
+            // Vous pouvez ajouter une lightbox ici
+            console.log('Opening photo', id);
+        }
+        
+        // ===== TRACK PLAYER =====
+        function playTrack(id) {
+            console.log('Playing track', id);
+        }
+
+        // ===== 3D TILT EFFECT =====
+        const tiltCard = document.getElementById('tilt-card');
+        
+        if (tiltCard) {
+            // Desktop: Mouse movement
+            tiltCard.addEventListener('mousemove', (e) => {
+                const rect = tiltCard.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = ((y - centerY) / centerY) * -10;
+                const rotateY = ((x - centerX) / centerX) * 10;
+                tiltCard.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.03)`;
+            });
             
-            // Mobile (Gyro)
+            tiltCard.addEventListener('mouseleave', () => {
+                tiltCard.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)`;
+            });
+            
+            // Mobile: Gyroscope
             if (window.DeviceOrientationEvent) {
                 window.addEventListener("deviceorientation", (event) => {
-                    const rotateY = event.gamma * 0.5; const rotateX = (event.beta - 45) * -0.5;
-                    const clampedX = Math.max(-20, Math.min(20, rotateX)); const clampedY = Math.max(-20, Math.min(20, rotateY));
                     const section = document.getElementById('model');
-                    if(section && section.getBoundingClientRect().top < window.innerHeight && section.getBoundingClientRect().bottom > 0) {
-                         card.style.transform = `perspective(1000px) rotateX(${clampedX}deg) rotateY(${clampedY}deg)`;
+                    if (section && isElementInViewport(section)) {
+                        const rotateY = (event.gamma || 0) * 0.4;
+                        const rotateX = ((event.beta || 0) - 45) * -0.4;
+                        const clampedX = Math.max(-15, Math.min(15, rotateX));
+                        const clampedY = Math.max(-15, Math.min(15, rotateY));
+                        tiltCard.style.transform = `perspective(1000px) rotateX(${clampedX}deg) rotateY(${clampedY}deg)`;
                     }
                 }, true);
             }
         }
+        
+        function isElementInViewport(el) {
+            const rect = el.getBoundingClientRect();
+            return rect.top < window.innerHeight && rect.bottom > 0;
+        }
 
-        // === 3D LOGIC ===
-        const PHOTO_URL='photo.jpg'; let currentMode='reactor', scene, camera, renderer, particles;
+        // ===== 3D SYSTEM (Simplifié pour mobile) =====
+        let currentMode = 'reactor';
+        let scene, camera, renderer, particles;
         let is3DInitialized = false;
-
+        
         function init3DSystem() {
-            document.getElementById('btn-start-3d').style.display='none';
-            const c=document.getElementById('canvas-container'); c.innerHTML='';
-            scene=new THREE.Scene(); scene.fog=new THREE.FogExp2(0x000000,0.003);
-            camera=new THREE.PerspectiveCamera(75,window.innerWidth/window.innerHeight,0.1,1000); camera.position.z=100;
-            renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
-            renderer.setSize(window.innerWidth,window.innerHeight);
-            c.appendChild(renderer.domElement);
+            document.getElementById('btn-start-3d').style.display = 'none';
+            const container = document.getElementById('canvas-container');
+            container.innerHTML = '';
             
-            if(currentMode==='reactor') setupReactor(); else loadHolo();
-            animate(); startCam();
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.002);
+            
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 100;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Optimisation mobile
+            container.appendChild(renderer.domElement);
+            
+            setupReactor();
+            animate();
             is3DInitialized = true;
+            
+            document.getElementById('status-3d').textContent = 'Expérience active ✨';
         }
-
+        
         function setupReactor() {
-            const geo=new THREE.BufferGeometry(); const pos=[]; const col=[];
-            for(let i=0;i<5000;i++){
-                const t=Math.random()*Math.PI*2; const d=Math.sqrt(Math.random());
-                let x=16*Math.pow(Math.sin(t),3), y=13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t), z=(Math.random()-0.5)*10;
-                pos.push(x*3*d, y*3*d, z*3*d); col.push(1,0,0.2);
+            const geometry = new THREE.BufferGeometry();
+            const positions = [];
+            const colors = [];
+            
+            // Coeur 3D paramétrique
+            for (let i = 0; i < 3000; i++) {
+                const t = Math.random() * Math.PI * 2;
+                const d = Math.sqrt(Math.random());
+                const x = 16 * Math.pow(Math.sin(t), 3);
+                const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+                const z = (Math.random() - 0.5) * 15;
+                
+                positions.push(x * 2.5 * d, y * 2.5 * d, z * d);
+                colors.push(1, 0.05 + Math.random() * 0.3, 0.3);
             }
-            geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-            geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-            const mat=new THREE.PointsMaterial({size:2, vertexColors:true, blending:THREE.AdditiveBlending, transparent:true});
-            particles=new THREE.Points(geo,mat); scene.add(particles);
+            
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+            
+            const material = new THREE.PointsMaterial({
+                size: 2.5,
+                vertexColors: true,
+                blending: THREE.AdditiveBlending,
+                transparent: true,
+                opacity: 0.8
+            });
+            
+            particles = new THREE.Points(geometry, material);
+            scene.add(particles);
         }
-
-        function loadHolo() {
-            const i=new Image(); i.src=PHOTO_URL;
-            i.onload=()=>{
-                const cv=document.createElement('canvas'); const x=cv.getContext('2d');
-                cv.width=200; cv.height=200; x.drawImage(i,0,0,200,200);
-                const d=x.getImageData(0,0,200,200).data;
-                const geo=new THREE.BufferGeometry(); const pos=[]; const col=[];
-                for(let y=0;y<200;y+=2){
-                    for(let x=0;x<200;x+=2){
-                        const k=(y*200+x)*4;
-                        if(d[k+3]>50){
-                            pos.push((x-100)*0.8, (100-y)*0.8, 0);
-                            col.push(d[k]/255, d[k+1]/255, d[k+2]/255);
-                        }
-                    }
-                }
-                geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-                geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-                const mat=new THREE.PointsMaterial({size:1.5, vertexColors:true});
-                particles=new THREE.Points(geo,mat); scene.add(particles);
-            };
+        
+        function animate() {
+            if (!is3DInitialized) return;
+            requestAnimationFrame(animate);
+            
+            if (particles) {
+                particles.rotation.y += 0.003;
+                particles.rotation.x = Math.sin(Date.now() * 0.0005) * 0.2;
+            }
+            
+            renderer.render(scene, camera);
         }
+        
+        // Responsive 3D
+        window.addEventListener('resize', () => {
+            if (camera && renderer) {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }
+        });
 
-        function animate(){ requestAnimationFrame(animate); if(particles) particles.rotation.y+=0.005; renderer.render(scene,camera); }
-
-        function startCam(){
-            const v=document.getElementById('webcam-video');
-            const cv=document.getElementById('pip-canvas'); const cx=cv.getContext('2d');
-            const hands=new Hands({locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}`});
-            hands.setOptions({maxNumHands:1, minDetectionConfidence:0.5});
-            hands.onResults((res)=>{
-                cx.clearRect(0,0,cv.width,cv.height); cx.drawImage(res.image,0,0,cv.width,cv.height);
-                const s=document.getElementById('status-3d');
-                if(res.multiHandLandmarks.length>0) {
-                    s.innerText="DETECTÉ !"; s.style.color="#0f0";
-                    if(particles) particles.scale.setScalar(1.5);
-                } else {
-                    s.innerText="Montre ta main..."; s.style.color="#fff";
-                    if(particles) particles.scale.setScalar(1);
+        // ===== PERFORMANCE: Lazy loading des sections =====
+        const observerOptions = {
+            root: null,
+            rootMargin: '50px',
+            threshold: 0.1
+        };
+        
+        const sectionObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
                 }
             });
-            const cam=new Camera(v,{onFrame:async()=>{await hands.send({image:v})},width:320,height:240});
-            cam.start();
-        }
-
-        window.addEventListener('resize', ()=>{ if(camera){ camera.aspect=window.innerWidth/window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight);} });
+        }, observerOptions);
+        
+        document.querySelectorAll('.section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(20px)';
+            section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+            sectionObserver.observe(section);
+        });
     </script>
 </body>
 </html>
